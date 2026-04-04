@@ -94,6 +94,35 @@ export function Settings() {
             {arcadeSpeed.toFixed(1)}x
           </div>
         </div>
+
+        <div className="bg-slate-900/50 p-6 rounded-2xl ring-1 ring-slate-800">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
+              <Zap className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-200">Cube Rotation Speed</h3>
+              <p className="text-sm text-slate-400">Adjust how fast the cube animates its moves</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-slate-400">Slow</span>
+            <input 
+              type="range" 
+              min="0.2" 
+              max="2" 
+              step="0.1" 
+              value={useSettingsStore((s) => s.cubeRotationSpeed)}
+              onChange={(e) => useSettingsStore.getState().setCubeRotationSpeed(parseFloat(e.target.value))}
+              className="flex-1 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+            />
+            <span className="text-sm font-medium text-slate-400">Fast</span>
+          </div>
+          <div className="text-center mt-2 text-blue-400 font-mono font-bold">
+            {useSettingsStore((s) => s.cubeRotationSpeed).toFixed(1)}x
+          </div>
+        </div>
       </div>
     </div>
   );

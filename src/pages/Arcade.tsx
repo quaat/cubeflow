@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { motion, useAnimationFrame } from 'motion/react';
+import { motion, useAnimation, useAnimationFrame } from 'motion/react';
 import { ALGORITHMS, AlgorithmCase } from '@/config/algorithms';
 import { parseNotation, ParsedMove } from '@/lib/notation';
 import { MoveCard } from '@/components/cube/MoveCard';
@@ -9,105 +9,136 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { Play, Pause, RotateCcw, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// ─── Highway tuning ──────────────────────────────────────────────────────────
-const VISIBLE_AHEAD  = 7;    // upcoming cards rendered
-const VISIBLE_BEHIND = 1;    // past cards kept visible briefly
-const HORIZON_Y      = 5;    // % from top of lane container (vanishing point)
-const HIT_Y          = 80;   // % from top of lane container (player hit zone)
-const FOCAL_LENGTH   = 2.0;  // perspective strength — higher → more compression near horizon
-const MIN_SCALE      = 0.10; // card scale at the horizon
-const MAX_SCALE      = 1.1;  // card scale at the hit zone
-const FAR_OPACITY    = 0.22; // opacity at the horizon
-const NEAR_OPACITY   = 1.0;  // opacity at the hit zone
-const MAX_BLUR       = 3.0;  // px blur at the far horizon
-// ─────────────────────────────────────────────────────────────────────────────
+// Highway tuning constants
+const HIGHWAY = {
+  VISIBLE_AHEAD: 6,
+  VISIBLE_BEHIND: 1.5,
+  HORIZON_Y: -160,
+  HIT_Y: 60,
+  PAST_Y: 250,
+  MIN_SCALE: 0.4,
+  HIT_SCALE: 2.2,
+  PAST_SCALE: 3.2,
+};
+
+const MOVE_FRACTION = 0.3;
+const FADE_FRACTION = 0.7;
 
 type HighwayCardLayout = {
-  y: number;       // % from top of lane container
+  y: number;
   scale: number;
   opacity: number;
   zIndex: number;
-  blur: number;
   visible: boolean;
+  blur: number;
 };
 
-/**
- * Maps a card's beat-distance from the playhead to its highway layout.
- *
- *   distance = 0   → at the hit zone (current / active move)
- *   distance > 0   → upcoming (travels from horizon down to hit zone)
- *   distance < 0   → just passed (slides below hit zone and fades)
- *
- * Uses a projective (perspective) mapping so that far cards compress
- * toward the horizon exactly like a real vanishing-point road.
- */
 function getHighwayLayout(distance: number): HighwayCardLayout {
-  if (distance < -(VISIBLE_BEHIND + 0.5) || distance > VISIBLE_AHEAD + 0.5) {
-    return { y: 0, scale: 0, opacity: 0, zIndex: 0, blur: 0, visible: false };
+  if (distance > HIGHWAY.VISIBLE_AHEAD || distance < -HIGHWAY.VISIBLE_BEHIND) {
+    return { y: 0, scale: 0, opacity: 0, zIndex: 0, visible: false, blur: 0 };
   }
 
+  // Normalize depth: 0 at hit zone, 1 at horizon
+  let depth = 0;
   if (distance >= 0) {
-    // t = 1 at hit zone (d=0), t → 0 as d → ∞  (perspective divide)
-    const t       = FOCAL_LENGTH / (FOCAL_LENGTH + distance);
-    const y       = HORIZON_Y + (HIT_Y - HORIZON_Y) * t;
-    const scale   = MIN_SCALE  + (MAX_SCALE  - MIN_SCALE)  * t;
-    const opacity = FAR_OPACITY + (NEAR_OPACITY - FAR_OPACITY) * t;
-    const blur    = MAX_BLUR * (1 - t);
-    const zIndex  = Math.round(t * 100);
-    return { y, scale, opacity, zIndex, blur, visible: true };
+    depth = Math.pow(distance / HIGHWAY.VISIBLE_AHEAD, 0.75); 
   } else {
-    // Past card: falls below hit zone and fades quickly
-    const abs     = Math.abs(distance);
-    const y       = HIT_Y + abs * 14;
-    const scale   = MAX_SCALE * Math.max(0, 1 - abs * 0.7);
-    const opacity = Math.max(0, 1 - abs * 1.8);
-    const zIndex  = 0;
-    return { y, scale, opacity, zIndex, blur: abs * 1.5, visible: opacity > 0.01 };
+    depth = -Math.pow(Math.abs(distance) / HIGHWAY.VISIBLE_BEHIND, 0.75);
   }
+
+  // Interpolate Y
+  let y = 0;
+  if (depth >= 0) {
+    y = HIGHWAY.HIT_Y + depth * (HIGHWAY.HORIZON_Y - HIGHWAY.HIT_Y);
+  } else {
+    y = HIGHWAY.HIT_Y + Math.abs(depth) * (HIGHWAY.PAST_Y - HIGHWAY.HIT_Y);
+  }
+
+  // Interpolate Scale
+  let scale = 0;
+  if (depth >= 0) {
+    scale = HIGHWAY.HIT_SCALE + depth * (HIGHWAY.MIN_SCALE - HIGHWAY.HIT_SCALE);
+  } else {
+    scale = HIGHWAY.HIT_SCALE + Math.abs(depth) * (HIGHWAY.PAST_SCALE - HIGHWAY.HIT_SCALE);
+  }
+
+  // Opacity
+  let opacity = 1;
+  if (distance > HIGHWAY.VISIBLE_AHEAD - 1.5) {
+    opacity = 1 - (distance - (HIGHWAY.VISIBLE_AHEAD - 1.5)) / 1.5;
+  } else if (distance < -0.2) {
+    opacity = 1 - (Math.abs(distance) - 0.2) / (HIGHWAY.VISIBLE_BEHIND - 0.2);
+  }
+  
+  // Blur (optional, for depth of field)
+  let blur = 0;
+  if (distance > 3) {
+    blur = (distance - 3) * 1.5;
+  }
+
+  const zIndex = Math.round(1000 - distance * 100);
+
+  return {
+    y,
+    scale,
+    opacity: Math.max(0, Math.min(1, opacity)),
+    zIndex,
+    visible: true,
+    blur: Math.max(0, blur)
+  };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
+// A simple rhythm highway component
 export function Arcade() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const caseId = searchParams.get('case');
   const { addHistory, updateMastery } = useProgressStore();
-  const { arcadeSpeed } = useSettingsStore();
-
+  const { arcadeSpeed, cubeRotationSpeed } = useSettingsStore();
+  
   const [algo, setAlgo] = useState<AlgorithmCase | null>(null);
   const [moves, setMoves] = useState<ParsedMove[]>([]);
-
-  const [isPlaying, setIsPlaying]   = useState(false);
+  
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  const [progress, setProgress]     = useState(0); // 0 → 1
-
-  const durationPerMove = 800 / arcadeSpeed;
-  const totalDuration   = moves.length * durationPerMove;
-
+  const [progress, setProgress] = useState(0); // 0 to 1
+  const [playCount, setPlayCount] = useState(0);
+  
+  const baseDuration = 800 / arcadeSpeed;
+  const animDurationMs = 600 / cubeRotationSpeed;
+  const minDuration = animDurationMs / (FADE_FRACTION - MOVE_FRACTION);
+  
+  const durationPerMove = Math.max(baseDuration, minDuration); // ms per move
+  const totalDuration = moves.length * durationPerMove;
+  
   const startTimeRef = useRef<number | null>(null);
   const pauseTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const selectedAlgo = caseId
-      ? ALGORITHMS.find(a => a.id === caseId)
+    // If no case specified, pick a random one
+    const selectedAlgo = caseId 
+      ? ALGORITHMS.find(a => a.id === caseId) 
       : ALGORITHMS[Math.floor(Math.random() * ALGORITHMS.length)];
-
+      
     if (selectedAlgo) {
       setAlgo(selectedAlgo);
       setMoves(parseNotation(selectedAlgo.sequence));
+      setPlayCount(0);
     }
   }, [caseId]);
 
   useAnimationFrame((time) => {
     if (!isPlaying || isFinished || totalDuration === 0) return;
-
-    if (startTimeRef.current === null) startTimeRef.current = time;
-
-    const elapsed     = time - startTimeRef.current;
+    
+    if (startTimeRef.current === null) {
+      startTimeRef.current = time;
+    }
+    
+    const elapsed = time - startTimeRef.current;
     const newProgress = Math.min(elapsed / totalDuration, 1);
+    
     setProgress(newProgress);
-
+    
     if (newProgress >= 1) {
       setIsPlaying(false);
       setIsFinished(true);
@@ -116,18 +147,22 @@ export function Arcade() {
 
   const handlePlayPause = () => {
     if (isFinished) {
+      // Reset
       setProgress(0);
       setIsFinished(false);
       startTimeRef.current = null;
       setIsPlaying(true);
+      setPlayCount(c => c + 1);
       return;
     }
+    
     if (isPlaying) {
       setIsPlaying(false);
       pauseTimeRef.current = performance.now();
     } else {
       if (pauseTimeRef.current && startTimeRef.current) {
-        startTimeRef.current += performance.now() - pauseTimeRef.current;
+        // Adjust start time by the paused duration
+        startTimeRef.current += (performance.now() - pauseTimeRef.current);
       }
       setIsPlaying(true);
     }
@@ -135,10 +170,16 @@ export function Arcade() {
 
   const handleResult = (success: boolean) => {
     if (!algo) return;
-
-    addHistory({ score: success ? 100 : 0, accuracy: success ? 100 : 0, mode: 'arcade' });
+    
+    addHistory({
+      score: success ? 100 : 0,
+      accuracy: success ? 100 : 0,
+      mode: 'arcade'
+    });
+    
     updateMastery(algo.id, success ? 10 : -5);
-
+    
+    // Load next random case
     const nextAlgo = ALGORITHMS[Math.floor(Math.random() * ALGORITHMS.length)];
     navigate(`/arcade?case=${nextAlgo.id}`, { replace: true });
     setProgress(0);
@@ -153,150 +194,111 @@ export function Arcade() {
         e.preventDefault();
         handlePlayPause();
       } else if (isFinished) {
-        if      (e.code === 'ArrowRight') { e.preventDefault(); handleResult(true);  }
-        else if (e.code === 'ArrowLeft')  { e.preventDefault(); handleResult(false); }
-        else if (e.code === 'KeyR')       { e.preventDefault(); handlePlayPause();   }
+        if (e.code === 'ArrowRight') {
+          e.preventDefault();
+          handleResult(true);
+        } else if (e.code === 'ArrowLeft') {
+          e.preventDefault();
+          handleResult(false);
+        } else if (e.code === 'KeyR') {
+          e.preventDefault();
+          handlePlayPause(); // Replay
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, isFinished, algo]);
 
-  if (!algo) return <div className="flex-1 flex items-center justify-center">Loading…</div>;
+  if (!algo) return <div className="flex-1 flex items-center justify-center">Loading...</div>;
 
-  // Fractional beat position of the playhead
-  const currentBeatFloat  = progress * moves.length;
-  const currentMoveIndex  = Math.min(Math.floor(currentBeatFloat), moves.length - 1);
+  const currentMoveIndex = Math.min(
+    Math.floor(progress * moves.length),
+    moves.length - 1
+  );
+  
+  const rawBeatFloat = progress * moves.length;
+  const p = rawBeatFloat - currentMoveIndex;
+  
+  let currentBeatFloat = 0;
+  if (p < MOVE_FRACTION) {
+    // Moving phase
+    currentBeatFloat = currentMoveIndex - 1 + (p / MOVE_FRACTION);
+  } else {
+    // Stopped phase
+    currentBeatFloat = currentMoveIndex;
+  }
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-
-      {/* ── Synthwave floor grid ───────────────────────────────────────────── */}
-      <div className="absolute inset-0 flex items-end justify-center pointer-events-none overflow-hidden">
-        <div
+      {/* Background perspective grid */}
+      <div className="absolute inset-0 perspective-[1000px] flex items-center justify-center pointer-events-none opacity-20">
+        <div 
+          className="w-[200%] h-[200%] rotate-x-60 translate-y-1/4 bg-[linear-gradient(to_right,#4f46e5_1px,transparent_1px),linear-gradient(to_bottom,#4f46e5_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" 
           style={{
-            width: '300%',
-            height: '55%',
-            backgroundImage: `
-              linear-gradient(to right,  rgba(99,102,241,0.18) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(99,102,241,0.18) 1px, transparent 1px)
-            `,
-            backgroundSize: '64px 44px',
-            transform: 'perspective(500px) rotateX(58deg)',
-            transformOrigin: 'bottom center',
-            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 75%)',
-            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 75%)',
+            backgroundPositionY: `${(progress * moves.length * 4) % 4}rem`
           }}
         />
       </div>
 
-      {/* ── Horizon glow line ─────────────────────────────────────────────── */}
-      <div
-        className="absolute left-0 right-0 pointer-events-none"
-        style={{
-          top: '34%',
-          height: '1px',
-          background: 'radial-gradient(ellipse 70% 100% at 50% 50%, rgba(139,92,246,0.55), transparent)',
-          filter: 'blur(6px)',
-        }}
-      />
-
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <div className="z-10 text-center mb-6">
-        <h2 className="text-4xl font-black tracking-tight mb-1 text-white drop-shadow-lg">
-          {algo.name}
-        </h2>
-        <p className="text-indigo-300 font-mono text-base">{algo.sequence}</p>
+      <div className="z-10 text-center mb-12">
+        <h2 className="text-4xl font-black tracking-tight mb-2 text-white drop-shadow-lg">{algo.name}</h2>
+        <p className="text-indigo-300 font-mono text-lg">{algo.sequence}</p>
       </div>
 
-      {/* ── Highway Lane ──────────────────────────────────────────────────── */}
-      <div className="relative w-full max-w-md" style={{ height: '430px' }}>
+      {/* The Highway */}
+      <div key={playCount} className="relative w-full max-w-3xl h-96 flex items-center justify-center mb-12">
+        {/* Lane floor glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-[400px] bg-indigo-500/10 blur-3xl rounded-full pointer-events-none" />
+        
+        <div className="absolute inset-0 flex items-center justify-center">
+          {moves.map((move, i) => {
+            // Calculate position based on distance in beats
+            const distance = i - currentBeatFloat;
+            
+            const layout = getHighwayLayout(distance);
+            if (!layout.visible) return null;
+            
+            const isActive = i === currentMoveIndex;
+            const isPast = i < currentMoveIndex;
+            
+            // Fade out the active card after it animates
+            let cardOpacity = layout.opacity;
+            if (isActive && p > FADE_FRACTION) {
+              cardOpacity = layout.opacity * (1 - (p - FADE_FRACTION) / (1 - FADE_FRACTION));
+            } else if (isPast) {
+              cardOpacity = 0; // Keep past cards hidden
+            }
 
-        {/* Converging lane lines (SVG vanishing-point road) */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 400 430"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="laneGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="rgba(99,102,241,0)"    />
-              <stop offset="35%"  stopColor="rgba(99,102,241,0.08)" />
-              <stop offset="100%" stopColor="rgba(99,102,241,0.35)" />
-            </linearGradient>
-            <linearGradient id="edgeGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="rgba(139,92,246,0)"   />
-              <stop offset="30%"  stopColor="rgba(139,92,246,0.4)" />
-              <stop offset="100%" stopColor="rgba(99,102,241,0.9)" />
-            </linearGradient>
-          </defs>
-          {/* Lane fill */}
-          <polygon points="200,22 110,430 290,430" fill="url(#laneGrad)" />
-          {/* Left edge */}
-          <line x1="200" y1="22" x2="110" y2="430" stroke="url(#edgeGrad)" strokeWidth="1.5" />
-          {/* Right edge */}
-          <line x1="200" y1="22" x2="290" y2="430" stroke="url(#edgeGrad)" strokeWidth="1.5" />
-          {/* Vanishing point dot */}
-          <circle cx="200" cy="22" r="3" fill="rgba(167,139,250,0.9)" />
-          <circle cx="200" cy="22" r="8" fill="rgba(167,139,250,0.15)" />
-        </svg>
+            if (cardOpacity <= 0) return null;
 
-        {/* Hit zone glow */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-          style={{
-            top: `${HIT_Y}%`,
-            width: '200px',
-            height: '3px',
-            background: 'linear-gradient(to right, transparent, rgba(99,102,241,0.9), transparent)',
-            boxShadow: '0 0 18px 4px rgba(99,102,241,0.5)',
-          }}
-        />
-        <div
-          className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-          style={{
-            top: `calc(${HIT_Y}% - 20px)`,
-            width: '240px',
-            height: '44px',
-            background: 'radial-gradient(ellipse at 50% 90%, rgba(99,102,241,0.12), transparent 70%)',
-          }}
-        />
+            const playAnimation = isActive && p >= MOVE_FRACTION;
 
-        {/* Move cards — rendered back-to-front by zIndex */}
-        {moves.map((move, i) => {
-          const distance = i - currentBeatFloat;
-          const layout   = getHighwayLayout(distance);
-          if (!layout.visible) return null;
-
-          const isActive = i === currentMoveIndex;
-
-          return (
-            <div
-              key={i}
-              className="absolute left-1/2 pointer-events-none"
-              style={{
-                top: `${layout.y}%`,
-                transform: `translateX(-50%) translateY(-50%) scale(${layout.scale})`,
-                opacity: layout.opacity,
-                zIndex: layout.zIndex,
-                filter: layout.blur > 0.2 ? `blur(${layout.blur.toFixed(1)}px)` : undefined,
-                willChange: 'transform, opacity',
-              }}
-            >
-              <MoveCard
-                move={move}
-                active={isActive}
-                className={cn(
-                  isActive && "ring-4 ring-white/70 shadow-[0_0_40px_rgba(255,255,255,0.3)]"
-                )}
-              />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={i}
+                className="absolute transition-none"
+                style={{
+                  transform: `translate3d(0, ${layout.y}px, 0) scale(${layout.scale})`,
+                  opacity: cardOpacity,
+                  zIndex: layout.zIndex,
+                  filter: layout.blur > 0 ? `blur(${layout.blur}px)` : 'none',
+                }}
+              >
+                <MoveCard 
+                  move={move} 
+                  active={isActive}
+                  playAnimation={playAnimation}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* ── Controls ──────────────────────────────────────────────────────── */}
-      <div className="z-10 flex flex-col items-center gap-8 mt-2">
+      {/* Controls */}
+      <div className="z-10 flex flex-col items-center gap-8">
         {!isFinished ? (
           <button
             onClick={handlePlayPause}
@@ -305,7 +307,7 @@ export function Arcade() {
             {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
           </button>
         ) : (
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center bg-slate-900/80 p-8 rounded-3xl backdrop-blur-xl ring-1 ring-slate-700"
@@ -337,10 +339,10 @@ export function Arcade() {
           </motion.div>
         )}
       </div>
-
-      {/* ── Progress bar ──────────────────────────────────────────────────── */}
+      
+      {/* Progress bar */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-slate-800">
-        <div
+        <div 
           className="h-full bg-indigo-500 transition-all duration-75 ease-linear"
           style={{ width: `${progress * 100}%` }}
         />
