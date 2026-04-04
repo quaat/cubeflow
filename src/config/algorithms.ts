@@ -1,7 +1,9 @@
+export type AlgorithmCategory = "Beginner" | "OLL" | "PLL";
+
 export type AlgorithmCase = {
   id: string;
   name: string;
-  category: string;
+  category: AlgorithmCategory;
   subgroup?: string;
   sequence: string;
   description?: string;
@@ -10,7 +12,219 @@ export type AlgorithmCase = {
   accentColor?: string;
 };
 
+export const CATEGORIES: readonly AlgorithmCategory[] = ["Beginner", "OLL", "PLL"] as const;
+
 export const ALGORITHMS: AlgorithmCase[] = [
+  // Beginner Cases
+  {
+    id: "beginner-cross-r",
+    name: "Cross Helper - Single Turn",
+    category: "Beginner",
+    subgroup: "Step 1 - White Cross",
+    sequence: "R",
+    description: "Simple white-cross helper used in the beginner guide for a basic edge insertion case.",
+    difficulty: 1,
+    tags: ["beginner", "cross", "micro"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-cross-fr",
+    name: "Cross Helper - Front Right",
+    category: "Beginner",
+    subgroup: "Step 1 - White Cross",
+    sequence: "F R",
+    description: "White-cross helper used for a slightly more involved edge insertion case.",
+    difficulty: 1,
+    tags: ["beginner", "cross", "micro"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-cross-fru",
+    name: "Cross Helper - Front Right Up",
+    category: "Beginner",
+    subgroup: "Step 1 - White Cross",
+    sequence: "F R U",
+    description: "White-cross helper used for a three-move setup case in the beginner guide.",
+    difficulty: 1,
+    tags: ["beginner", "cross", "micro"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-cross-edge-swap",
+    name: "Cross Edge Swap",
+    category: "Beginner",
+    subgroup: "Step 1 - White Cross",
+    sequence: "R' U' R U R'",
+    description: "Swaps/moves misaligned cross edges without disturbing the rest of the white cross.",
+    difficulty: 2,
+    tags: ["beginner", "cross", "swap"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-corner-fdf",
+    name: "Corner Insert - White Facing Front",
+    category: "Beginner",
+    subgroup: "Step 2 - First Layer Corners",
+    sequence: "F D F'",
+    description: "Inserts a first-layer corner when the white sticker is facing the front.",
+    difficulty: 1,
+    tags: ["beginner", "first-layer", "corners"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-corner-rdpr",
+    name: "Corner Insert - White Facing Right",
+    category: "Beginner",
+    subgroup: "Step 2 - First Layer Corners",
+    sequence: "R' D' R",
+    description: "Inserts a first-layer corner when the white sticker is facing right.",
+    difficulty: 1,
+    tags: ["beginner", "first-layer", "corners"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-corner-rdrf-d2f",
+    name: "Corner Insert - White Facing Down",
+    category: "Beginner",
+    subgroup: "Step 2 - First Layer Corners",
+    sequence: "R' D R F D2 F'",
+    description: "Inserts a first-layer corner when the white sticker is facing downward.",
+    difficulty: 2,
+    tags: ["beginner", "first-layer", "corners"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-corner-reorient",
+    name: "Corner Reorient In Place",
+    category: "Beginner",
+    subgroup: "Step 2 - First Layer Corners",
+    sequence: "R' D R F D F'",
+    description: "Reorients a first-layer corner that is already in the correct slot but twisted incorrectly.",
+    difficulty: 2,
+    tags: ["beginner", "first-layer", "corners", "reorient"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-second-right",
+    name: "Second Layer Insert Right",
+    category: "Beginner",
+    subgroup: "Step 3 - Second Layer",
+    sequence: "U R U' R' U' F' U F",
+    description: "Moves a top-layer edge into the second layer on the right.",
+    difficulty: 2,
+    tags: ["beginner", "second-layer", "edge-insert", "right"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-second-left",
+    name: "Second Layer Insert Left",
+    category: "Beginner",
+    subgroup: "Step 3 - Second Layer",
+    sequence: "U' L' U L U F U' F'",
+    description: "Moves a top-layer edge into the second layer on the left.",
+    difficulty: 2,
+    tags: ["beginner", "second-layer", "edge-insert", "left"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-second-awkward",
+    name: "Second Layer Awkward Case",
+    category: "Beginner",
+    subgroup: "Step 3 - Second Layer",
+    sequence: "R U' R' U F' U2 F U F' U2 F",
+    description: "Longer beginner-guide algorithm for the awkward second-layer case where the edge is stuck/flipped unfavorably.",
+    difficulty: 3,
+    tags: ["beginner", "second-layer", "edge-flip", "advanced-beginner"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-cross-l",
+    name: "Last Layer Cross - Backward L",
+    category: "Beginner",
+    subgroup: "Step 4 - Last Layer Cross",
+    sequence: "F U R U' R' F'",
+    description: "Used when the yellow top face shows the backward-L shape; hold the L in the top-left orientation.",
+    difficulty: 2,
+    tags: ["beginner", "last-layer", "cross", "l-shape"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-cross-line",
+    name: "Last Layer Cross - Line",
+    category: "Beginner",
+    subgroup: "Step 4 - Last Layer Cross",
+    sequence: "F R U R' U' F'",
+    description: "Used when the yellow top face shows a horizontal line.",
+    difficulty: 2,
+    tags: ["beginner", "last-layer", "cross", "line"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-cross-dot",
+    name: "Last Layer Cross - Dot",
+    category: "Beginner",
+    subgroup: "Step 4 - Last Layer Cross",
+    sequence: "F U R U' R' F' F R U R' U' F'",
+    description: "Explicit training version of the dot case: perform the backward-L algorithm, then the line algorithm.",
+    difficulty: 3,
+    tags: ["beginner", "last-layer", "cross", "dot"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-edges-adjacent",
+    name: "Last Layer Edges - Adjacent Swap",
+    category: "Beginner",
+    subgroup: "Step 5 - Last Layer Edges",
+    sequence: "U R U R' U R U2 R'",
+    description: "Use when the two unsolved last-layer edges are adjacent; hold them in the front and right faces.",
+    difficulty: 2,
+    tags: ["beginner", "last-layer", "edges", "adjacent"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-edges-opposite",
+    name: "Last Layer Edges - Opposite Swap",
+    category: "Beginner",
+    subgroup: "Step 5 - Last Layer Edges",
+    sequence: "U R U R' U R U2 R' U R U R' U R U2 R'",
+    description: "Explicit training version of the opposite-edge case: perform the adjacent-swap algorithm twice.",
+    difficulty: 3,
+    tags: ["beginner", "last-layer", "edges", "opposite"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-corners-permute",
+    name: "Last Layer Corners - Permute",
+    category: "Beginner",
+    subgroup: "Step 6 - Last Layer Corners (Permutation)",
+    sequence: "U R U' L' U R' U' L",
+    description: "Permutes last-layer corners. Hold a correct corner in the FRU position if one exists.",
+    difficulty: 2,
+    tags: ["beginner", "last-layer", "corners", "permute"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-corners-orient-right",
+    name: "Last Layer Corners - Orient (Yellow Right)",
+    category: "Beginner",
+    subgroup: "Step 7 - Last Layer Corners (Orientation)",
+    sequence: "R' D' R D R' D' R D",
+    description: "Use when the incorrect FRU corner has the yellow sticker facing right.",
+    difficulty: 2,
+    tags: ["beginner", "last-layer", "corners", "orient", "right"],
+    accentColor: "#2dd4bf"
+  },
+  {
+    id: "beginner-last-corners-orient-front",
+    name: "Last Layer Corners - Orient (Yellow Front)",
+    category: "Beginner",
+    subgroup: "Step 7 - Last Layer Corners (Orientation)",
+    sequence: "R' D' R D R' D' R D R' D' R D R' D' R D",
+    description: "Use when the incorrect FRU corner has the yellow sticker facing forward. This is the same 4-move trigger repeated four times.",
+    difficulty: 3,
+    tags: ["beginner", "last-layer", "corners", "orient", "front"],
+    accentColor: "#2dd4bf"
+  },
   // OLL Cases
   {
     id: "oll-27",
@@ -154,5 +368,3 @@ export const ALGORITHMS: AlgorithmCase[] = [
     accentColor: "#ef4444",
   }
 ];
-
-export const CATEGORIES = Array.from(new Set(ALGORITHMS.map(a => a.category)));
