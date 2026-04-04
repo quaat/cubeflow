@@ -1,0 +1,5 @@
+{
+  "name": "CubeFlow",
+  "description": "A modern, rhythm-based Rubik's Cube algorithm trainer.",
+  "requestFramePermissions": []
+}
