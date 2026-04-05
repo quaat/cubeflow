@@ -21,8 +21,8 @@ test('algorithm ids are unique and every category is represented', () => {
   assert.deepEqual([...representedCategories].sort(), [...CATEGORIES].sort());
 });
 
-test('category ordering and distribution match the 2-look/full OLL split', () => {
-  assert.deepEqual(CATEGORIES, ["Beginner", "2-Look OLL", "Advanced OLL", "PLL"]);
+test('category ordering and distribution match the 2-look/full OLL+PLL split', () => {
+  assert.deepEqual(CATEGORIES, ["Beginner", "2-Look OLL", "Advanced OLL", "2-Look PLL", "Advanced PLL"]);
 
   const byCategory = ALGORITHMS.reduce<Record<string, number>>((acc, algorithm) => {
     acc[algorithm.category] = (acc[algorithm.category] ?? 0) + 1;
@@ -31,12 +31,18 @@ test('category ordering and distribution match the 2-look/full OLL split', () =>
 
   assert.equal(byCategory["2-Look OLL"], 10, '2-Look OLL should contain exactly 10 cases');
   assert.equal(byCategory["Advanced OLL"], 50, 'Advanced OLL should contain exactly 50 cases');
+  assert.equal(byCategory["2-Look PLL"], 6, '2-Look PLL should contain exactly 6 cases');
+  assert.equal(byCategory["Advanced PLL"], 15, 'Advanced PLL should contain exactly 15 cases');
+  assert.equal((byCategory["2-Look PLL"] ?? 0) + (byCategory["Advanced PLL"] ?? 0), 21, 'Combined PLL total should remain 21');
   assert.equal(byCategory["Beginner"], 19, 'Beginner case count should remain unchanged');
-  assert.equal(byCategory["PLL"], 7, 'PLL case count should remain unchanged');
 });
 
 test('legacy OLL category value is no longer used', () => {
   assert.equal(ALGORITHMS.some((algorithm) => String(algorithm.category) === "OLL"), false);
+});
+
+test('legacy PLL category value is no longer used', () => {
+  assert.equal(ALGORITHMS.some((algorithm) => String(algorithm.category) === "PLL"), false);
 });
 
 test('every algorithm sequence is non-empty and uses supported notation tokens', () => {

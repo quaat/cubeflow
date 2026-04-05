@@ -4,7 +4,8 @@ export type AlgorithmCategory =
   | "Beginner"
   | "2-Look OLL"
   | "Advanced OLL"
-  | "PLL";
+  | "2-Look PLL"
+  | "Advanced PLL";
 
 export type AlgorithmCase = {
   id: string;
@@ -23,7 +24,8 @@ export const CATEGORIES: readonly AlgorithmCategory[] = [
   "Beginner",
   "2-Look OLL",
   "Advanced OLL",
-  "PLL",
+  "2-Look PLL",
+  "Advanced PLL",
 ] as const;
 
 export const ALGORITHMS: AlgorithmCase[] = [
@@ -192,10 +194,10 @@ export const ALGORITHMS: AlgorithmCase[] = [
     thumbnail: {
       uFace: [
         ['X', 'X', 'X'],
-        ['X', 'X', 'X'],
-        ['X', 'X', 'X']
+        ['X', 'G', 'X'],
+        ['G', 'G', 'G']
       ],
-      arrows: [{ start: [2, 1], end: [1, 2], curved: true }]
+      arrows: [{ start: [0, 1], end: [1, 2], curved: true }]
     }
   },
   {
@@ -211,10 +213,10 @@ export const ALGORITHMS: AlgorithmCase[] = [
     thumbnail: {
       uFace: [
         ['X', 'X', 'X'],
-        ['X', 'X', 'X'],
-        ['X', 'X', 'X']
+        ['X', 'G', 'X'],
+        ['G', 'G', 'G']
       ],
-      arrows: [{ start: [2, 1], end: [1, 0], curved: true }]
+      arrows: [{ start: [0, 1], end: [1, 0], curved: true }]
     }
   },
   {
@@ -410,28 +412,67 @@ export const ALGORITHMS: AlgorithmCase[] = [
     difficulty: 1,
     tags: ["2look", "oll", "edges", "line"],
     accentColor: "#facc15",
+    thumbnail: {
+      uFace: [
+        ['X', 'X', 'X'],
+        ['Y', 'Y', 'Y'],
+        ['X', 'X', 'X']
+      ],
+      sideRing: {
+        front: ['U', 'Y', 'U'],
+        right: ['U', 'U', 'U'],
+        back: ['U', 'Y', 'U'],
+        left: ['U', 'U', 'U']
+      }
+    }
   },
-  {
+    {
     id: "2look-oll-edge-l-shape",
     name: "Edge Orientation - L Shape",
     category: "2-Look OLL",
     subgroup: "Edge Orientation",
-    sequence: "F U R U' R' F'",
+    sequence: "f R U R' U' f'",
     description: "2-Look OLL edge-orientation case: L shape.",
     difficulty: 1,
     tags: ["2look", "oll", "edges", "l-shape"],
     accentColor: "#facc15",
+    thumbnail: {
+      uFace: [
+        ['X', 'X', 'X'],
+        ['X', 'Y', 'Y'],
+        ['X', 'Y', 'X']
+      ],
+      sideRing: {
+        front: ['U', 'U', 'U'],
+        right: ['U', 'U', 'U'],
+        back: ['U', 'Y', 'U'],
+        left: ['U', 'Y', 'U']
+      }
+    }
   },
   {
     id: "2look-oll-edge-dot",
     name: "Edge Orientation - Dot",
     category: "2-Look OLL",
     subgroup: "Edge Orientation",
-    sequence: "F U R U' R' F' F R U R' U' F'",
+    sequence: "F R U R' U' F' f R U R' U' f'",
     description: "2-Look OLL edge-orientation case: dot. Use the L-shape algorithm followed by the line algorithm.",
     difficulty: 2,
     tags: ["2look", "oll", "edges", "dot"],
     accentColor: "#facc15",
+    thumbnail: {
+      uFace: [
+        ['X', 'X', 'X'],
+        ['X', 'Y', 'X'],
+        ['X', 'X', 'X']
+      ],
+      sideRing: {
+        front: ['U', 'Y', 'U'],
+        right: ['U', 'Y', 'U'],
+        back: ['U', 'Y', 'U'],
+        left: ['U', 'Y', 'U']
+      }
+    }
   },
   // 2-Look OLL - Corner Orientation
   {
@@ -470,14 +511,14 @@ export const ALGORITHMS: AlgorithmCase[] = [
     accentColor: "#facc15",
     thumbnail: {
       uFace: [
-        ['X', 'Y', 'X'],
+        ['X', 'Y', 'Y'],
         ['Y', 'Y', 'Y'],
-        ['X', 'Y', 'Y']
+        ['X', 'Y', 'X']
       ],
       sideRing: {
         front: ['Y', 'U', 'U'],
-        right: ['U', 'U', 'U'],
-        back: ['Y', 'U', 'U'],
+        right: ['Y', 'U', 'U'],
+        back: ['U', 'U', 'U'],
         left: ['Y', 'U', 'U']
       }
     }
@@ -487,7 +528,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
     name: "H",
     category: "2-Look OLL",
     subgroup: "Corner Orientation",
-    sequence: "F R U R' U' R U R' U' F'",
+    sequence: "R U R' U R U' R' U R U2 R'",
     description: "2-Look OLL corner-orientation case: H (OLL 21).",
     difficulty: 2,
     tags: ["2look", "oll", "corners", "h", "oll-21"],
@@ -499,10 +540,10 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['X', 'Y', 'X']
       ],
       sideRing: {
-        front: ['Y', 'U', 'Y'],
-        right: ['U', 'U', 'U'],
-        back: ['Y', 'U', 'Y'],
-        left: ['U', 'U', 'U']
+        front: ['U', 'U', 'U'],
+        right: ['Y', 'U', 'Y'],
+        back: ['U', 'U', 'U'],
+        left: ['Y', 'U', 'Y']
       }
     }
   },
@@ -523,9 +564,9 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['X', 'Y', 'X']
       ],
       sideRing: {
-        front: ['U', 'U', 'U'],
-        right: ['Y', 'U', 'Y'],
-        back: ['U', 'U', 'U'],
+        front: ['U', 'U', 'Y'],
+        right: ['U', 'U', 'U'],
+        back: ['Y', 'U', 'U'],
         left: ['Y', 'U', 'Y']
       }
     }
@@ -571,10 +612,10 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['X', 'Y', 'Y']
       ],
       sideRing: {
-        front: ['U', 'U', 'U'],
+        front: ['Y', 'U', 'U'],
         right: ['U', 'U', 'U'],
-        back: ['U', 'U', 'U'],
-        left: ['Y', 'U', 'Y']
+        back: ['U', 'U', 'Y'],
+        left: ['U', 'U', 'U']
       }
     }
   },
@@ -583,7 +624,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
     name: "L",
     category: "2-Look OLL",
     subgroup: "Corner Orientation",
-    sequence: "F' r U R' U' r' F R",
+    sequence: "F R' F' r U R U' r'",
     description: "2-Look OLL corner-orientation case: L (OLL 25).",
     difficulty: 3,
     tags: ["2look", "oll", "corners", "l", "oll-25"],
@@ -596,8 +637,8 @@ export const ALGORITHMS: AlgorithmCase[] = [
       ],
       sideRing: {
         front: ['Y', 'U', 'U'],
-        right: ['U', 'U', 'U'],
-        back: ['U', 'U', 'Y'],
+        right: ['U', 'U', 'Y'],
+        back: ['U', 'U', 'U'],
         left: ['U', 'U', 'U']
       }
     }
@@ -1165,16 +1206,74 @@ export const ALGORITHMS: AlgorithmCase[] = [
     tags: ["advanced", "oll", "full-oll", "i-shape", "oll-56"],
     accentColor: "#f59e0b",
   },
-  // PLL Cases
+  // 2-Look PLL - Corner Permutation
+  {
+    id: "pll-t",
+    name: "PLL T",
+    category: "2-Look PLL",
+    subgroup: "Corner Permutation",
+    sequence: "R U R' U' R' F R2 U' R' U' R U R' F'",
+    description: "2-Look PLL corner-permutation case with headlights.",
+    difficulty: 2,
+    tags: ["2look", "pll", "corners", "t-perm", "headlights"],
+    accentColor: "#a855f7",
+    thumbnail: {
+      uFace: [
+        ['Y', 'Y', 'Y'],
+        ['Y', 'Y', 'Y'],
+        ['Y', 'Y', 'Y']
+      ],
+      sideRing: {
+        front: ['O', 'G', 'O'],
+        right: ['G', 'O', 'B'],
+        back: ['B', 'B', 'R'],
+        left: ['R', 'R', 'G']
+      },
+      arrows: [
+        { start: [0, 2], end: [2, 2], bidirectional: true },
+        { start: [1, 0], end: [1, 2], bidirectional: true }
+      ]
+    }
+  },
+  {
+    id: "pll-y",
+    name: "PLL Y",
+    category: "2-Look PLL",
+    subgroup: "Corner Permutation",
+    sequence: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+    description: "2-Look PLL corner-permutation case with no headlights.",
+    difficulty: 3,
+    tags: ["2look", "pll", "corners", "y-perm", "no-headlights"],
+    accentColor: "#a855f7",
+    thumbnail: {
+      uFace: [
+        ['Y', 'Y', 'Y'],
+        ['Y', 'Y', 'Y'],
+        ['Y', 'Y', 'Y']
+      ],
+      sideRing: {
+        front: ['G', 'G', 'R'],
+        right: ['B', 'O', 'O'],
+        back: ['O', 'B', 'G'],
+        left: ['R', 'R', 'B']
+      },
+      arrows: [
+        { start: [0, 0], end: [2, 2], bidirectional: true },
+        { start: [0, 1], end: [1, 0], bidirectional: true, curved: true }
+      ]
+    }
+  },
+  // 2-Look PLL - Edge Permutation
   {
     id: "pll-ua",
     name: "PLL Ua",
-    category: "PLL",
-    subgroup: "Edges only",
+    category: "2-Look PLL",
+    subgroup: "Edge Permutation",
     sequence: "M2 U M U2 M' U M2",
+    description: "2-Look PLL edge-permutation case: Ua.",
     difficulty: 2,
-    tags: ["epll"],
-    accentColor: "#ef4444", // red
+    tags: ["2look", "pll", "edges", "ua"],
+    accentColor: "#a855f7",
     thumbnail: {
       uFace: [
         ['Y', 'Y', 'Y'],
@@ -1197,12 +1296,13 @@ export const ALGORITHMS: AlgorithmCase[] = [
   {
     id: "pll-ub",
     name: "PLL Ub",
-    category: "PLL",
-    subgroup: "Edges only",
+    category: "2-Look PLL",
+    subgroup: "Edge Permutation",
     sequence: "M2 U' M U2 M' U' M2",
+    description: "2-Look PLL edge-permutation case: Ub.",
     difficulty: 2,
-    tags: ["epll"],
-    accentColor: "#ef4444",
+    tags: ["2look", "pll", "edges", "ub"],
+    accentColor: "#a855f7",
     thumbnail: {
       uFace: [
         ['Y', 'Y', 'Y'],
@@ -1225,12 +1325,13 @@ export const ALGORITHMS: AlgorithmCase[] = [
   {
     id: "pll-h",
     name: "PLL H",
-    category: "PLL",
-    subgroup: "Edges only",
+    category: "2-Look PLL",
+    subgroup: "Edge Permutation",
     sequence: "M2 U M2 U2 M2 U M2",
+    description: "2-Look PLL edge-permutation case: H.",
     difficulty: 1,
-    tags: ["epll"],
-    accentColor: "#ef4444",
+    tags: ["2look", "pll", "edges", "h"],
+    accentColor: "#a855f7",
     thumbnail: {
       uFace: [
         ['Y', 'Y', 'Y'],
@@ -1252,12 +1353,13 @@ export const ALGORITHMS: AlgorithmCase[] = [
   {
     id: "pll-z",
     name: "PLL Z",
-    category: "PLL",
-    subgroup: "Edges only",
+    category: "2-Look PLL",
+    subgroup: "Edge Permutation",
     sequence: "M2 U M2 U M' U2 M2 U2 M'",
+    description: "2-Look PLL edge-permutation case: Z.",
     difficulty: 3,
-    tags: ["epll"],
-    accentColor: "#ef4444",
+    tags: ["2look", "pll", "edges", "z"],
+    accentColor: "#a855f7",
     thumbnail: {
       uFace: [
         ['Y', 'Y', 'Y'],
@@ -1276,68 +1378,16 @@ export const ALGORITHMS: AlgorithmCase[] = [
       ]
     }
   },
-  {
-    id: "pll-t",
-    name: "PLL T",
-    category: "PLL",
-    subgroup: "Adjacent swap",
-    sequence: "R U R' U' R' F R2 U' R' U' R U R' F'",
-    difficulty: 3,
-    tags: ["adjacent"],
-    accentColor: "#ef4444",
-    thumbnail: {
-      uFace: [
-        ['Y', 'Y', 'Y'],
-        ['Y', 'Y', 'Y'],
-        ['Y', 'Y', 'Y']
-      ],
-      sideRing: {
-        front: ['O', 'G', 'O'],
-        right: ['G', 'O', 'B'],
-        back: ['B', 'B', 'R'],
-        left: ['R', 'R', 'G']
-      },
-      arrows: [
-        { start: [0, 2], end: [2, 2], bidirectional: true },
-        { start: [1, 0], end: [1, 2], bidirectional: true }
-      ]
-    }
-  },
-  {
-    id: "pll-y",
-    name: "Diagonal",
-    category: "PLL",
-    subgroup: "Diagonal swap",
-    sequence: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
-    difficulty: 4,
-    tags: ["diagonal"],
-    accentColor: "#ef4444",
-    thumbnail: {
-      uFace: [
-        ['Y', 'Y', 'Y'],
-        ['Y', 'Y', 'Y'],
-        ['Y', 'Y', 'Y']
-      ],
-      sideRing: {
-        front: ['G', 'G', 'R'],
-        right: ['B', 'O', 'O'],
-        back: ['O', 'B', 'G'],
-        left: ['R', 'R', 'B']
-      },
-      arrows: [
-        { start: [0, 0], end: [2, 2], bidirectional: true },
-        { start: [0, 1], end: [1, 0], bidirectional: true, curved: true }
-      ]
-    }
-  },
+  // Advanced PLL - Corners Only
   {
     id: "pll-a",
-    name: "Headlights",
-    category: "PLL",
-    subgroup: "Corners only",
+    name: "PLL Aa",
+    category: "Advanced PLL",
+    subgroup: "Corners Only",
     sequence: "x R' U R' D2 R U' R' D2 R2 x'",
-    difficulty: 3,
-    tags: ["cpll"],
+    description: "Full PLL case Aa: adjacent corner cycle.",
+    difficulty: 2,
+    tags: ["advanced", "pll", "corners-only", "aa"],
     accentColor: "#ef4444",
     thumbnail: {
       uFace: [
@@ -1357,5 +1407,162 @@ export const ALGORITHMS: AlgorithmCase[] = [
         { start: [2, 2], end: [0, 0], curved: true }
       ]
     }
+  },
+  {
+    id: "pll-ab",
+    name: "PLL Ab",
+    category: "Advanced PLL",
+    subgroup: "Corners Only",
+    sequence: "x R2 D2 R U R' D2 R U' R x'",
+    description: "Full PLL case Ab: mirrored adjacent corner cycle.",
+    difficulty: 2,
+    tags: ["advanced", "pll", "corners-only", "ab"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-e",
+    name: "PLL E",
+    category: "Advanced PLL",
+    subgroup: "Corners Only",
+    sequence: "x' R U' R' D R U R' D' R U R' D R U' R' D' x",
+    description: "Full PLL case E: diagonal corner swap.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "corners-only", "e"],
+    accentColor: "#ef4444",
+  },
+  // Advanced PLL - Adjacent Swap
+  {
+    id: "pll-f",
+    name: "PLL F",
+    category: "Advanced PLL",
+    subgroup: "Adjacent Swap",
+    sequence: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R",
+    description: "Full PLL case F.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "adjacent-swap", "f"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-ja",
+    name: "PLL Ja",
+    category: "Advanced PLL",
+    subgroup: "Adjacent Swap",
+    sequence: "R' U L' U2 R U' R' U2 R L",
+    description: "Full PLL case Ja.",
+    difficulty: 2,
+    tags: ["advanced", "pll", "adjacent-swap", "ja"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-jb",
+    name: "PLL Jb",
+    category: "Advanced PLL",
+    subgroup: "Adjacent Swap",
+    sequence: "R U R' F' R U R' U' R' F R2 U' R'",
+    description: "Full PLL case Jb.",
+    difficulty: 2,
+    tags: ["advanced", "pll", "adjacent-swap", "jb"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-ra",
+    name: "PLL Ra",
+    category: "Advanced PLL",
+    subgroup: "Adjacent Swap",
+    sequence: "R U' R' U' R U R D R' U' R D' R' U2 R'",
+    description: "Full PLL case Ra.",
+    difficulty: 3,
+    tags: ["advanced", "pll", "adjacent-swap", "ra"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-rb",
+    name: "PLL Rb",
+    category: "Advanced PLL",
+    subgroup: "Adjacent Swap",
+    sequence: "R' U2 R U2 R' F R U R' U' R' F' R2",
+    description: "Full PLL case Rb.",
+    difficulty: 3,
+    tags: ["advanced", "pll", "adjacent-swap", "rb"],
+    accentColor: "#ef4444",
+  },
+  // Advanced PLL - Diagonal Swap
+  {
+    id: "pll-na",
+    name: "PLL Na",
+    category: "Advanced PLL",
+    subgroup: "Diagonal Swap",
+    sequence: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'",
+    description: "Full PLL case Na.",
+    difficulty: 5,
+    tags: ["advanced", "pll", "diagonal-swap", "na"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-nb",
+    name: "PLL Nb",
+    category: "Advanced PLL",
+    subgroup: "Diagonal Swap",
+    sequence: "R' U R U' R' F' U' F R U R' F R' F' R U' R",
+    description: "Full PLL case Nb.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "diagonal-swap", "nb"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-v",
+    name: "PLL V",
+    category: "Advanced PLL",
+    subgroup: "Diagonal Swap",
+    sequence: "R' U R' U' y R' F' R2 U' R' U R' F R F",
+    description: "Full PLL case V.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "diagonal-swap", "v"],
+    accentColor: "#ef4444",
+  },
+  // Advanced PLL - G Permutations
+  {
+    id: "pll-ga",
+    name: "PLL Ga",
+    category: "Advanced PLL",
+    subgroup: "G Permutations",
+    sequence: "R2 U R' U R' U' R U' R2 D U' R' U R D'",
+    description: "Full PLL case Ga.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "g-perm", "ga"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-gb",
+    name: "PLL Gb",
+    category: "Advanced PLL",
+    subgroup: "G Permutations",
+    sequence: "R' U' R U D' R2 U R' U R U' R U' R2 D",
+    description: "Full PLL case Gb.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "g-perm", "gb"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-gc",
+    name: "PLL Gc",
+    category: "Advanced PLL",
+    subgroup: "G Permutations",
+    sequence: "R2 U' R U' R U R' U R2 D' U R U' R' D",
+    description: "Full PLL case Gc.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "g-perm", "gc"],
+    accentColor: "#ef4444",
+  },
+  {
+    id: "pll-gd",
+    name: "PLL Gd",
+    category: "Advanced PLL",
+    subgroup: "G Permutations",
+    sequence: "D' R U R' U' D R2 U' R U' R' U R' U R2",
+    description: "Full PLL case Gd.",
+    difficulty: 4,
+    tags: ["advanced", "pll", "g-perm", "gd"],
+    accentColor: "#ef4444",
   }
 ];
