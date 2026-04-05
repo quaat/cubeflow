@@ -426,7 +426,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
       }
     }
   },
-    {
+  {
     id: "2look-oll-edge-l-shape",
     name: "Edge Orientation - L Shape",
     category: "2-Look OLL",
@@ -1241,7 +1241,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
     category: "2-Look PLL",
     subgroup: "Corner Permutation",
     sequence: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
-    description: "2-Look PLL corner-permutation case with no headlights.",
+    description: "Diagonal Corner Swap. 2-Look PLL corner-permutation case with no headlights.",
     difficulty: 3,
     tags: ["2look", "pll", "corners", "y-perm", "no-headlights"],
     accentColor: "#a855f7",
@@ -1281,15 +1281,15 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['Y', 'Y', 'Y']
       ],
       sideRing: {
-        front: ['G', 'B', 'G'],
-        right: ['R', 'R', 'R'],
-        back: ['B', 'O', 'B'],
-        left: ['O', 'G', 'O']
+        front: ['B', 'R', 'B'],
+        right: ['R', 'O', 'R'],
+        back: ['G', 'G', 'G'],
+        left: ['O', 'B', 'O']
       },
       arrows: [
-        { start: [2, 1], end: [1, 0], curved: true },
-        { start: [1, 0], end: [0, 1], curved: true },
-        { start: [0, 1], end: [2, 1], curved: true }
+        { start: [2, 1], end: [1, 2], curved: false },
+        { start: [1, 0], end: [2, 1], curved: false },
+        { start: [1, 2], end: [1, 0], curved: false }
       ]
     }
   },
@@ -1316,9 +1316,9 @@ export const ALGORITHMS: AlgorithmCase[] = [
         left: ['O', 'B', 'O']
       },
       arrows: [
-        { start: [2, 1], end: [0, 1], curved: true },
-        { start: [0, 1], end: [1, 0], curved: true },
-        { start: [1, 0], end: [2, 1], curved: true }
+        { start: [1, 2], end: [2, 1], curved: false },
+        { start: [2, 1], end: [1, 0], curved: false },
+        { start: [1, 0], end: [1, 2], curved: false }
       ]
     }
   },
@@ -1339,9 +1339,9 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['Y', 'Y', 'Y']
       ],
       sideRing: {
-        front: ['G', 'B', 'G'],
+        front: ['B', 'G', 'B'],
         right: ['R', 'O', 'R'],
-        back: ['B', 'G', 'B'],
+        back: ['G', 'B', 'G'],
         left: ['O', 'R', 'O']
       },
       arrows: [
@@ -1352,10 +1352,10 @@ export const ALGORITHMS: AlgorithmCase[] = [
   },
   {
     id: "pll-z",
-    name: "PLL Z",
+    name: "PLL Z-Perm",
     category: "2-Look PLL",
     subgroup: "Edge Permutation",
-    sequence: "M2 U M2 U M' U2 M2 U2 M'",
+    sequence: "M' U M2 U M2 U M' U2 M2",
     description: "2-Look PLL edge-permutation case: Z.",
     difficulty: 3,
     tags: ["2look", "pll", "edges", "z"],
@@ -1367,14 +1367,14 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['Y', 'Y', 'Y']
       ],
       sideRing: {
-        front: ['G', 'R', 'G'],
-        right: ['R', 'G', 'R'],
-        back: ['B', 'O', 'B'],
-        left: ['O', 'B', 'O']
+        front: ['O', 'G', 'O'],
+        right: ['B', 'R', 'B'],
+        back: ['R', 'B', 'R'],
+        left: ['G', 'O', 'G']
       },
       arrows: [
-        { start: [2, 1], end: [1, 2], bidirectional: true, curved: true },
-        { start: [0, 1], end: [1, 0], bidirectional: true, curved: true }
+        { start: [1, 0], end: [2, 1], bidirectional: true, curved: false },
+        { start: [0, 1], end: [1, 2], bidirectional: true, curved: false }
       ]
     }
   },
