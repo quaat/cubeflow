@@ -34,7 +34,7 @@ test('category ordering and distribution match the 2-look/full OLL+PLL split', (
   assert.equal(byCategory["2-Look PLL"], 6, '2-Look PLL should contain exactly 6 cases');
   assert.equal(byCategory["Advanced PLL"], 15, 'Advanced PLL should contain exactly 15 cases');
   assert.equal((byCategory["2-Look PLL"] ?? 0) + (byCategory["Advanced PLL"] ?? 0), 21, 'Combined PLL total should remain 21');
-  assert.equal(byCategory["Beginner"], 19, 'Beginner case count should remain unchanged');
+  assert.equal(byCategory["Beginner"], 9, 'Beginner case count should match the current catalog');
 });
 
 test('legacy OLL category value is no longer used', () => {
