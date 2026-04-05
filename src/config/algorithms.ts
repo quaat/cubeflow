@@ -121,7 +121,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
     name: "Last Layer Cross - Dot",
     category: "Beginner",
     subgroup: "Step 4 - Last Layer Cross",
-    sequence: "R U R' U'",
+    sequence: "F R U R' U' F'",
     description: "Explicit training version of the dot case: perform the backward-L algorithm, then the line algorithm.",
     difficulty: 3,
     tags: ["beginner", "last-layer", "cross", "dot"],
