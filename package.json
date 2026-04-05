@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "node --no-warnings --loader tsx --test test/index.test.ts"
+    "test": "node --no-warnings --import tsx --test test/index.test.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
