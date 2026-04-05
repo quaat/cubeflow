@@ -1,58 +1,124 @@
 # CubeFlow
 
-A modern, highly polished web app for training Rubik's Cube algorithms. It reimagines legacy algorithm trainers as a vibrant, rhythm-based browser experience.
+CubeFlow is a React + TypeScript training application for learning and retaining Rubik's Cube algorithms.  
+It combines a catalog-driven learning experience, spaced-repetition drills, and an animation-heavy arcade flow to improve recognition speed and execution consistency.
 
-## Features
+## Application Overview
 
-- **Learn Mode**: Browse and study algorithms step-by-step.
-- **Drill Mode**: Spaced repetition interface for perfect recall.
-- **Arcade Mode**: Train muscle memory with a rhythm highway where moves flow towards you.
-- **Progress Tracking**: Track your mastery, accuracy, and recent sessions.
-- **Dynamic Move Visuals**: Moves are parsed and rendered dynamically, eliminating the need for static image assets.
+- **Learn mode**: Browse algorithms by category, inspect case thumbnails, and view move-by-move breakdowns.
+- **Drill mode**: Practice with recall-based scoring and mastery adjustments.
+- **Arcade mode**: Run timed algorithm playback in a "rhythm highway" style trainer.
+- **Progress mode**: Track mastery percentages, recent sessions, and aggregate training stats.
+- **Settings mode**: Control core interaction settings (sound, motion, playback speed).
 
-## Tech Stack
+## Main Code Organization
+
+```text
+src/
+  App.tsx                       # Router and page registration
+  main.tsx                      # React app bootstrap
+  components/
+    cube/                       # Cube-specific UI (thumbnails, move visuals, geometry)
+    layout/                     # Shared app shell and navigation
+  config/
+    algorithms.ts               # Canonical algorithm catalog and categories
+  lib/
+    notation.ts                 # Move notation parser and move metadata
+    utils.ts                    # Shared utility helpers
+  pages/                        # Route-level screens (Home/Learn/Drill/Arcade/Progress/Settings)
+  store/
+    useProgressStore.ts         # Persisted training progress state (favorites/mastery/history)
+    useSettingsStore.ts         # Persisted user settings
+
+test/
+  index.test.ts                 # Test entrypoint
+  *.test.ts                     # Unit tests for notation, config invariants, and stores
+```
+
+## Technology Stack
 
 - React 19
 - TypeScript
 - Vite
 - Tailwind CSS 4
-- Zustand (State Management)
-- Motion (Framer Motion for animations)
-- Lucide React (Icons)
+- Zustand (with persisted client state)
+- Motion
+- React Router
 
-## Configuration
+## Running the App Locally
 
-Algorithms are configured in `src/config/algorithms.ts`. You can easily add new cases, categories, or subgroups without changing the UI code.
+### Prerequisites
 
-```ts
-export const ALGORITHMS: AlgorithmCase[] = [
-  {
-    id: "oll-27",
-    name: "Sune",
-    category: "OLL",
-    subgroup: "Edges oriented",
-    sequence: "R U R' U R U2 R'",
-    difficulty: 1,
-    tags: ["basic", "cross"],
-    accentColor: "#facc15",
-  },
-  // ...
-];
+- Node.js 20+ recommended
+- npm 10+ recommended
+
+### Install
+
+```bash
+npm ci
 ```
 
-## Setup
+### Development Server
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+```bash
+npm run dev
+```
 
-2. Start the development server:
-   ```bash
-   npm run dev
-   ```
+The app is served by Vite on port `3000`.
 
-3. Build for production:
-   ```bash
-   npm run build
-   ```
+### Production Build
+
+```bash
+npm run build
+```
+
+To preview the built output locally:
+
+```bash
+npm run preview
+```
+
+## Testing
+
+Run the unit test suite:
+
+```bash
+npm run test
+```
+
+Run static type checking:
+
+```bash
+npm run lint
+```
+
+The current tests focus on:
+- notation parsing behavior and edge cases
+- algorithm catalog integrity checks
+- persisted Zustand store behavior for progress and settings
+
+## Deployment
+
+GitHub Pages deployment is automated via:
+
+- `.github/workflows/deploy.yml`
+
+### Deployment Flow
+
+1. Push to `main` (or trigger workflow manually).
+2. GitHub Actions will:
+   - install dependencies (`npm ci`)
+   - run tests (`npm run test`)
+   - build the app (`npm run build`)
+   - upload `dist/` and deploy to GitHub Pages
+
+### GitHub Repository Settings
+
+In GitHub:
+1. Open **Settings > Pages**
+2. Set **Source** to **GitHub Actions**
+
+### Base Path Note
+
+The deploy workflow exports `BASE_PATH="/<repo-name>/"` for GitHub Pages builds.  
+If your repository is served from a subpath, ensure `vite.config.ts` reads that value into Vite's `base` option.
