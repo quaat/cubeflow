@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Global gitignore may ignore any "lib/" directory; keep project source libs tracked.
+!src/lib/
+!src/lib/**
