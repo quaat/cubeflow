@@ -6,6 +6,8 @@ export type ArrowConfig = {
   color?: string;
   curved?: boolean;
   bidirectional?: boolean;
+  strokeWidth?: number;
+  arrowheadSize?: number;
 };
 
 export type ThumbnailConfig = {
@@ -17,5 +19,7 @@ export type ThumbnailConfig = {
     left: StickerColor[]; // 3
   };
   arrows?: ArrowConfig[];
+  strokeWidth?: number;
+  arrowheadSize?: number;
   showOrientationRing?: boolean;
 };

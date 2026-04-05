@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { AlgorithmCase } from '@/config/algorithms';
-import { StickerColor, ArrowConfig } from './thumbnailTypes';
+import { StickerColor } from './thumbnailTypes';
 import { cn } from '@/lib/utils';
 
 interface CaseThumbnailProps {
@@ -19,13 +19,17 @@ const COLOR_MAP: Record<StickerColor, string> = {
   U: '#64748b', // uncolored / gray
 };
 
+const DEFAULT_ARROW_STROKE_WIDTH = 1.5;
+const DEFAULT_ARROWHEAD_SIZE = 7.0;
+
 export function CaseThumbnail({ algo, className }: CaseThumbnailProps) {
   const thumb = algo.thumbnail;
+  const markerScope = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   if (!thumb) {
     // Fallback if no thumbnail config is present
     return (
-      <div 
+      <div
         className={cn(
           "relative w-full aspect-square rounded-lg overflow-hidden flex items-center justify-center bg-slate-900 border border-slate-800",
           className
@@ -52,7 +56,7 @@ export function CaseThumbnail({ algo, className }: CaseThumbnailProps) {
   });
 
   return (
-    <div 
+    <div
       className={cn(
         "relative w-full aspect-square rounded-lg overflow-hidden flex items-center justify-center bg-slate-900 border border-slate-800",
         className
@@ -146,64 +150,71 @@ export function CaseThumbnail({ algo, className }: CaseThumbnailProps) {
         {/* Arrows */}
         {thumb.arrows && (
           <g className="arrows">
-            <defs>
-              <marker
-                id="arrowhead"
-                markerWidth="6"
-                markerHeight="6"
-                refX="4"
-                refY="3"
-                orient="auto"
-              >
-                <polygon points="0 0, 6 3, 0 6" fill="#111827" />
-              </marker>
-              <marker
-                id="arrowhead-start"
-                markerWidth="6"
-                markerHeight="6"
-                refX="2"
-                refY="3"
-                orient="auto-start-reverse"
-              >
-                <polygon points="0 0, 6 3, 0 6" fill="#111827" />
-              </marker>
-            </defs>
             {thumb.arrows.map((arrow, i) => {
               const start = getCellCenter(arrow.start[0], arrow.start[1]);
               const end = getCellCenter(arrow.end[0], arrow.end[1]);
-              
               const dx = end.x - start.x;
               const dy = end.y - start.y;
               const len = Math.sqrt(dx * dx + dy * dy);
-              
-              // Shrink by 8px on each side if possible
-              const shrink = Math.min(8, len * 0.3);
-              const sx = start.x + (dx / len) * shrink;
-              const sy = start.y + (dy / len) * shrink;
-              const ex = end.x - (dx / len) * shrink;
-              const ey = end.y - (dy / len) * shrink;
+              const isSelfArrow = len < 0.0001;
 
-              let pathD = `M ${sx} ${sy} L ${ex} ${ey}`;
-              
-              if (arrow.curved) {
-                const cx = start.x + dx / 2 - dy * 0.3;
-                const cy = start.y + dy / 2 + dx * 0.3;
-                pathD = `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;
+              const strokeColor = arrow.color || "#111827";
+              const strokeWidth = Math.max(
+                0.1,
+                arrow.strokeWidth ?? thumb.strokeWidth ?? DEFAULT_ARROW_STROKE_WIDTH
+              );
+              const arrowheadSize = Math.max(
+                0.1,
+                arrow.arrowheadSize ?? thumb.arrowheadSize ?? DEFAULT_ARROWHEAD_SIZE
+              );
+              const markerId = `${markerScope || 'thumb'}-arrowhead-${i}`;
+
+              let pathD = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+
+              if (isSelfArrow) {
+                // Self-arrow loop centered on the sticker center.
+                const loopRadius = cellSize * 0.34;
+                const loopTopY = start.y - loopRadius * 1.8;
+                const rightX = start.x + loopRadius * 1.2;
+                const leftX = start.x - loopRadius * 1.2;
+                pathD = `M ${start.x} ${start.y} C ${rightX} ${start.y - loopRadius} ${rightX} ${loopTopY} ${start.x} ${loopTopY} C ${leftX} ${loopTopY} ${leftX} ${start.y - loopRadius} ${start.x} ${start.y}`;
+              } else if (arrow.curved) {
+                const nx = -dy / len;
+                const ny = dx / len;
+                const bend = Math.min(cellSize * 1.1, Math.max(cellSize * 0.35, len * 0.28));
+                const cx = start.x + dx / 2 + nx * bend;
+                const cy = start.y + dy / 2 + ny * bend;
+                pathD = `M ${start.x} ${start.y} Q ${cx} ${cy} ${end.x} ${end.y}`;
               }
 
               return (
-                <path
-                  key={`arrow-${i}`}
-                  d={pathD}
-                  fill="none"
-                  stroke={arrow.color || "#111827"}
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  markerEnd="url(#arrowhead)"
-                  markerStart={arrow.bidirectional ? "url(#arrowhead-start)" : undefined}
-                  className="drop-shadow-sm"
-                  opacity="0.9"
-                />
+                <React.Fragment key={`arrow-${i}`}>
+                  <defs>
+                    <marker
+                      id={markerId}
+                      viewBox="0 0 10 10"
+                      markerWidth={arrowheadSize}
+                      markerHeight={arrowheadSize}
+                      refX="10"
+                      refY="5"
+                      orient="auto-start-reverse"
+                      markerUnits="userSpaceOnUse"
+                    >
+                      <polygon points="0 0, 10 5, 0 10" fill={strokeColor} />
+                    </marker>
+                  </defs>
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke={strokeColor}
+                    strokeWidth={strokeWidth}
+                    strokeLinecap="round"
+                    markerEnd={`url(#${markerId})`}
+                    markerStart={arrow.bidirectional ? `url(#${markerId})` : undefined}
+                    className="drop-shadow-sm"
+                    opacity="0.9"
+                  />
+                </React.Fragment>
               );
             })}
           </g>
