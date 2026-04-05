@@ -21,6 +21,24 @@ test('algorithm ids are unique and every category is represented', () => {
   assert.deepEqual([...representedCategories].sort(), [...CATEGORIES].sort());
 });
 
+test('category ordering and distribution match the 2-look/full OLL split', () => {
+  assert.deepEqual(CATEGORIES, ["Beginner", "2-Look OLL", "Advanced OLL", "PLL"]);
+
+  const byCategory = ALGORITHMS.reduce<Record<string, number>>((acc, algorithm) => {
+    acc[algorithm.category] = (acc[algorithm.category] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  assert.equal(byCategory["2-Look OLL"], 10, '2-Look OLL should contain exactly 10 cases');
+  assert.equal(byCategory["Advanced OLL"], 50, 'Advanced OLL should contain exactly 50 cases');
+  assert.equal(byCategory["Beginner"], 19, 'Beginner case count should remain unchanged');
+  assert.equal(byCategory["PLL"], 7, 'PLL case count should remain unchanged');
+});
+
+test('legacy OLL category value is no longer used', () => {
+  assert.equal(ALGORITHMS.some((algorithm) => String(algorithm.category) === "OLL"), false);
+});
+
 test('every algorithm sequence is non-empty and uses supported notation tokens', () => {
   for (const algorithm of ALGORITHMS) {
     assert.notEqual(algorithm.sequence.trim(), '', `${algorithm.id} has an empty sequence`);
