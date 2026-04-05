@@ -1,6 +1,6 @@
 import React, { useId } from 'react';
 import { AlgorithmCase } from '@/config/algorithms';
-import { StickerColor } from './thumbnailTypes';
+import { StickerColor, ThumbnailConfig, ThumbnailSideRing } from './thumbnailTypes';
 import { cn } from '@/lib/utils';
 
 interface CaseThumbnailProps {
@@ -22,32 +22,66 @@ const COLOR_MAP: Record<StickerColor, string> = {
 const DEFAULT_ARROW_STROKE_WIDTH = 1.5;
 const DEFAULT_ARROWHEAD_SIZE = 7.0;
 
+export function getThumbnailDimension(thumb: ThumbnailConfig): 3 | 4 {
+  if (thumb.size === 3 || thumb.size === 4) return thumb.size;
+  return thumb.uFace.length === 4 ? 4 : 3;
+}
+
+export function isValidThumbnailGrid(thumb: ThumbnailConfig, dimension: 3 | 4): boolean {
+  if (!Array.isArray(thumb.uFace) || thumb.uFace.length !== dimension) return false;
+  return thumb.uFace.every((row) => (
+    Array.isArray(row)
+    && row.length === dimension
+    && row.every((color) => color in COLOR_MAP)
+  ));
+}
+
+export function isValidSideRing(sideRing: ThumbnailSideRing | undefined, dimension: 3 | 4): sideRing is ThumbnailSideRing {
+  if (!sideRing) return false;
+  return (
+    Array.isArray(sideRing.front) && sideRing.front.length === dimension
+    && Array.isArray(sideRing.right) && sideRing.right.length === dimension
+    && Array.isArray(sideRing.back) && sideRing.back.length === dimension
+    && Array.isArray(sideRing.left) && sideRing.left.length === dimension
+  );
+}
+
+function isCellCoordinateInBounds(coord: [number, number], dimension: 3 | 4): boolean {
+  const [row, col] = coord;
+  return row >= 0 && row < dimension && col >= 0 && col < dimension;
+}
+
 export function CaseThumbnail({ algo, className }: CaseThumbnailProps) {
   const thumb = algo.thumbnail;
   const markerScope = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
-  if (!thumb) {
-    // Fallback if no thumbnail config is present
-    return (
-      <div
-        className={cn(
-          "relative w-full aspect-square rounded-lg overflow-hidden flex items-center justify-center bg-slate-900 border border-slate-800",
-          className
-        )}
-        style={{
-          background: `radial-gradient(circle at 50% 50%, ${algo.accentColor}20 0%, transparent 70%)`
-        }}
-      >
-        <div className="w-1/2 h-1/2 bg-slate-800 rounded opacity-50" />
-      </div>
-    );
+  const renderFallback = () => (
+    <div
+      className={cn(
+        "relative w-full aspect-square rounded-lg overflow-hidden flex items-center justify-center bg-slate-900 border border-slate-800",
+        className
+      )}
+      style={{
+        background: `radial-gradient(circle at 50% 50%, ${algo.accentColor}20 0%, transparent 70%)`
+      }}
+    >
+      <div className="w-1/2 h-1/2 bg-slate-800 rounded opacity-50" />
+    </div>
+  );
+
+  if (!thumb) return renderFallback();
+
+  const dimension = getThumbnailDimension(thumb);
+  if (!isValidThumbnailGrid(thumb, dimension)) {
+    return renderFallback();
   }
+  const hasValidSideRing = isValidSideRing(thumb.sideRing, dimension);
 
   // SVG dimensions
   const size = 100;
-  const padding = thumb.sideRing ? 16 : 8;
+  const padding = hasValidSideRing ? 16 : 8;
   const innerSize = size - padding * 2;
-  const cellSize = innerSize / 3;
+  const cellSize = innerSize / dimension;
 
   // Helper to get center of a cell
   const getCellCenter = (row: number, col: number) => ({
@@ -67,13 +101,13 @@ export function CaseThumbnail({ algo, className }: CaseThumbnailProps) {
     >
       <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full drop-shadow-md">
         {/* Side Ring */}
-        {thumb.sideRing && (
+        {hasValidSideRing && thumb.sideRing && (
           <g className="side-ring">
             {/* Top / Back */}
             {thumb.sideRing.back.map((color, i) => (
               <rect
                 key={`back-${i}`}
-                x={padding + (2 - i) * cellSize} // Back is usually read left-to-right from the back, but let's just map it 0->right, 1->mid, 2->left from top view
+                x={padding + (dimension - 1 - i) * cellSize}
                 y={padding - 6}
                 width={cellSize}
                 height={4}
@@ -116,7 +150,7 @@ export function CaseThumbnail({ algo, className }: CaseThumbnailProps) {
               <rect
                 key={`right-${i}`}
                 x={size - padding + 2}
-                y={padding + (2 - i) * cellSize}
+                y={padding + (dimension - 1 - i) * cellSize}
                 width={4}
                 height={cellSize}
                 fill={COLOR_MAP[color]}
@@ -151,6 +185,10 @@ export function CaseThumbnail({ algo, className }: CaseThumbnailProps) {
         {thumb.arrows && (
           <g className="arrows">
             {thumb.arrows.map((arrow, i) => {
+              if (!isCellCoordinateInBounds(arrow.start, dimension) || !isCellCoordinateInBounds(arrow.end, dimension)) {
+                return null;
+              }
+
               const start = getCellCenter(arrow.start[0], arrow.start[1]);
               const end = getCellCenter(arrow.end[0], arrow.end[1]);
               const dx = end.x - start.x;

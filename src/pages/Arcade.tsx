@@ -288,6 +288,7 @@ export function Arcade() {
               >
                 <MoveCard 
                   move={move} 
+                  cubeSize={algo.cubeSize ?? 3}
                   active={isActive}
                   playAnimation={playAnimation}
                 />

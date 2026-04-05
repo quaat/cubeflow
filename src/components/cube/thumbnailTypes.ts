@@ -10,14 +10,17 @@ export type ArrowConfig = {
   arrowheadSize?: number;
 };
 
+export type ThumbnailSideRing = {
+  front: StickerColor[];
+  right: StickerColor[];
+  back: StickerColor[];
+  left: StickerColor[];
+};
+
 export type ThumbnailConfig = {
-  uFace: StickerColor[][]; // 3x3
-  sideRing?: {
-    front: StickerColor[]; // 3
-    right: StickerColor[]; // 3
-    back: StickerColor[]; // 3
-    left: StickerColor[]; // 3
-  };
+  size?: 3 | 4;
+  uFace: StickerColor[][]; // NxN (3x3 or 4x4)
+  sideRing?: ThumbnailSideRing;
   arrows?: ArrowConfig[];
   strokeWidth?: number;
   arrowheadSize?: number;

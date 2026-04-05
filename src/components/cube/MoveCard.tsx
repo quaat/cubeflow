@@ -5,6 +5,7 @@ import { CubeMoveVisualizer } from './CubeMoveVisualizer';
 
 interface MoveCardProps extends React.HTMLAttributes<HTMLDivElement> {
   move: ParsedMove;
+  cubeSize?: 3 | 4;
   className?: string;
   active?: boolean;
   playAnimation?: boolean;
@@ -12,7 +13,7 @@ interface MoveCardProps extends React.HTMLAttributes<HTMLDivElement> {
   key?: React.Key;
 }
 
-export function MoveCard({ move, className, active, playAnimation, continuousAnimation, ...props }: MoveCardProps) {
+export function MoveCard({ move, cubeSize = 3, className, active, playAnimation, continuousAnimation, ...props }: MoveCardProps) {
   return (
     <div 
       {...props}
@@ -28,7 +29,13 @@ export function MoveCard({ move, className, active, playAnimation, continuousAni
     >
       {/* 3D Cube Visualizer */}
       <div className="absolute inset-0 pt-4 pb-8">
-        <CubeMoveVisualizer move={move} active={active} playAnimation={playAnimation} continuousAnimation={continuousAnimation} />
+        <CubeMoveVisualizer
+          move={move}
+          cubeSize={cubeSize}
+          active={active}
+          playAnimation={playAnimation}
+          continuousAnimation={continuousAnimation}
+        />
       </div>
       
       {/* Notation Label */}

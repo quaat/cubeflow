@@ -2,6 +2,7 @@ import { ThumbnailConfig } from '@/components/cube/thumbnailTypes';
 
 export type AlgorithmCategory =
   | "Beginner"
+  | "4x4 Beginner"
   | "2-Look OLL"
   | "Advanced OLL"
   | "2-Look PLL"
@@ -11,6 +12,7 @@ export type AlgorithmCase = {
   id: string;
   name: string;
   category: AlgorithmCategory;
+  cubeSize?: 3 | 4;
   subgroup?: string;
   sequence: string;
   description?: string;
@@ -26,6 +28,7 @@ export const CATEGORIES: readonly AlgorithmCategory[] = [
   "Advanced OLL",
   "2-Look PLL",
   "Advanced PLL",
+  "4x4 Beginner",
 ] as const;
 
 export const ALGORITHMS: AlgorithmCase[] = [
@@ -223,6 +226,89 @@ export const ALGORITHMS: AlgorithmCase[] = [
         left: ['U', 'U', 'U']
       }
     }
+  },
+  // 4x4 Beginner
+  {
+    id: "4x4-last-two-edges",
+    name: "Last Two Edges",
+    category: "4x4 Beginner",
+    subgroup: "Edge Pairing",
+    cubeSize: 4,
+    sequence: "Uw' R U R' F R' F' R Uw",
+    description: "Use when only two edge pairs remain unsolved during reduction. This is the dedicated last-two-edges algorithm from the 4x4 beginner method.",
+    difficulty: 3,
+    tags: ["4x4", "beginner", "reduction", "edge-pairing", "last-two-edges"],
+    accentColor: "#60a5fa",
+    thumbnail: {
+      size: 4,
+      uFace: [
+        ['X', 'X', 'X', 'X'],
+        ['Y', 'X', 'X', 'Y'],
+        ['O', 'X', 'X', 'O'],
+        ['X', 'X', 'X', 'X'],
+      ],
+      sideRing: {
+        front: ['U', 'G', 'G', 'U'],
+        right: ['U', 'U', 'U', 'U'],
+        back: ['U', 'B', 'B', 'U'],
+        left: ['U', 'U', 'U', 'U']
+      },
+      arrows: [{ start: [1, 0], end: [1, 3], curved: true, bidirectional: true }]
+    },
+  },
+  {
+    id: "4x4-oll-parity",
+    name: "OLL Parity",
+    category: "4x4 Beginner",
+    subgroup: "Parity",
+    cubeSize: 4,
+    sequence: "Rw U2 x Rw U2 Rw U2 Rw' U2 Lw U2 Rw' U2 Rw U2 Rw' U2 Rw'",
+    description: "Fixes 4x4 OLL parity, where an odd number of last-layer edges are oriented after reduction.",
+    difficulty: 5,
+    tags: ["4x4", "beginner", "reduction", "parity", "oll-parity"],
+    accentColor: "#60a5fa",
+    thumbnail: {
+      size: 4,
+      uFace: [
+        ['X', 'Y', 'Y', 'X'],
+        ['B', 'B', 'B', 'B'],
+        ['B', 'B', 'B', 'B'],
+        ['B', 'B', 'B', 'B'],
+      ],
+      sideRing: {
+        front: ['X', 'X', 'X', 'X'],
+        right: ['R', 'R', 'R', 'X'],
+        back: ['X', 'X', 'X', 'X'],
+        left: ['X', 'O', 'O', 'O']
+      },
+    },
+  },
+  {
+    id: "4x4-pll-parity",
+    name: "PLL Parity",
+    category: "4x4 Beginner",
+    subgroup: "Parity",
+    cubeSize: 4,
+    sequence: "r2 U2 r2 Uw2 r2 Uw2",
+    description: "Fixes 4x4 PLL parity, where the reduced cube presents an impossible 3x3-style PLL state. A final U2 alignment may be required depending on the case.",
+    difficulty: 4,
+    tags: ["4x4", "beginner", "reduction", "parity", "pll-parity"],
+    accentColor: "#60a5fa",
+    thumbnail: {
+      size: 4,
+      uFace: [
+        ['B', 'G', 'G', 'B'],
+        ['B', 'B', 'B', 'B'],
+        ['B', 'B', 'B', 'B'],
+        ['B', 'B', 'B', 'B'],
+      ],
+      sideRing: {
+        front: ['X', 'X', 'X', 'X'],
+        right: ['R', 'R', 'R', 'R'],
+        back: ['Y', 'Y', 'Y', 'Y'],
+        left: ['O', 'O', 'O', 'X']
+      },
+    },
   },
   // 2-Look OLL - Edge Orientation
   {

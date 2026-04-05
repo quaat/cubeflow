@@ -22,13 +22,14 @@ test('algorithm ids are unique and every category is represented', () => {
 });
 
 test('category ordering and distribution match the 2-look/full OLL+PLL split', () => {
-  assert.deepEqual(CATEGORIES, ["Beginner", "2-Look OLL", "Advanced OLL", "2-Look PLL", "Advanced PLL"]);
+  assert.deepEqual(CATEGORIES, ["Beginner", "2-Look OLL", "Advanced OLL", "2-Look PLL", "Advanced PLL", "4x4 Beginner" ]);
 
   const byCategory = ALGORITHMS.reduce<Record<string, number>>((acc, algorithm) => {
     acc[algorithm.category] = (acc[algorithm.category] ?? 0) + 1;
     return acc;
   }, {});
 
+  assert.equal(byCategory["4x4 Beginner"], 3, '4x4 Beginner should contain exactly 3 cases');
   assert.equal(byCategory["2-Look OLL"], 10, '2-Look OLL should contain exactly 10 cases');
   assert.equal(byCategory["Advanced OLL"], 50, 'Advanced OLL should contain exactly 50 cases');
   assert.equal(byCategory["2-Look PLL"], 6, '2-Look PLL should contain exactly 6 cases');
@@ -45,6 +46,28 @@ test('legacy PLL category value is no longer used', () => {
   assert.equal(ALGORITHMS.some((algorithm) => String(algorithm.category) === "PLL"), false);
 });
 
+test('4x4 entries are present with valid cube size metadata', () => {
+  const fourByFourIds = [
+    '4x4-last-two-edges',
+    '4x4-oll-parity',
+    '4x4-pll-parity',
+  ];
+
+  const fourByFourCases = ALGORITHMS.filter((algorithm) => algorithm.category === '4x4 Beginner');
+  assert.equal(fourByFourCases.length, 3, 'There should be exactly 3 cases in the 4x4 Beginner category');
+  assert.deepEqual(fourByFourCases.map((algorithm) => algorithm.id).sort(), [...fourByFourIds].sort());
+
+  for (const algorithm of ALGORITHMS) {
+    if (algorithm.cubeSize !== undefined) {
+      assert.ok(algorithm.cubeSize === 3 || algorithm.cubeSize === 4, `${algorithm.id} has invalid cube size`);
+    }
+  }
+
+  for (const algorithm of fourByFourCases) {
+    assert.equal(algorithm.cubeSize, 4, `${algorithm.id} should be marked as 4x4`);
+  }
+});
+
 test('every algorithm sequence is non-empty and uses supported notation tokens', () => {
   for (const algorithm of ALGORITHMS) {
     assert.notEqual(algorithm.sequence.trim(), '', `${algorithm.id} has an empty sequence`);
@@ -58,28 +81,37 @@ test('every algorithm sequence is non-empty and uses supported notation tokens',
   }
 });
 
-test('algorithm thumbnails stay within the expected 3x3 cube face bounds', () => {
+test('algorithm thumbnails stay within their configured cube face bounds', () => {
   for (const algorithm of ALGORITHMS) {
     const { thumbnail } = algorithm;
     if (!thumbnail) continue;
 
-    assert.equal(thumbnail.uFace.length, 3, `${algorithm.id} should define 3 thumbnail rows`);
+    const dimension = thumbnail.size ?? thumbnail.uFace.length;
+    assert.ok(dimension === 3 || dimension === 4, `${algorithm.id} should define a 3x3 or 4x4 thumbnail`);
+    assert.equal(thumbnail.uFace.length, dimension, `${algorithm.id} should define ${dimension} thumbnail rows`);
+
     for (const row of thumbnail.uFace) {
-      assert.equal(row.length, 3, `${algorithm.id} should define 3 thumbnail columns`);
+      assert.equal(row.length, dimension, `${algorithm.id} should define ${dimension} thumbnail columns`);
     }
 
     if (thumbnail.sideRing) {
-      assert.equal(thumbnail.sideRing.front.length, 3, `${algorithm.id} front ring should have 3 stickers`);
-      assert.equal(thumbnail.sideRing.right.length, 3, `${algorithm.id} right ring should have 3 stickers`);
-      assert.equal(thumbnail.sideRing.back.length, 3, `${algorithm.id} back ring should have 3 stickers`);
-      assert.equal(thumbnail.sideRing.left.length, 3, `${algorithm.id} left ring should have 3 stickers`);
+      assert.equal(thumbnail.sideRing.front.length, dimension, `${algorithm.id} front ring should have ${dimension} stickers`);
+      assert.equal(thumbnail.sideRing.right.length, dimension, `${algorithm.id} right ring should have ${dimension} stickers`);
+      assert.equal(thumbnail.sideRing.back.length, dimension, `${algorithm.id} back ring should have ${dimension} stickers`);
+      assert.equal(thumbnail.sideRing.left.length, dimension, `${algorithm.id} left ring should have ${dimension} stickers`);
     }
 
     for (const arrow of thumbnail.arrows ?? []) {
       for (const [row, col] of [arrow.start, arrow.end]) {
-        assert.ok(row >= 0 && row <= 2, `${algorithm.id} arrow row ${row} is out of bounds`);
-        assert.ok(col >= 0 && col <= 2, `${algorithm.id} arrow col ${col} is out of bounds`);
+        assert.ok(row >= 0 && row < dimension, `${algorithm.id} arrow row ${row} is out of bounds`);
+        assert.ok(col >= 0 && col < dimension, `${algorithm.id} arrow col ${col} is out of bounds`);
       }
     }
   }
+});
+
+test('3x3 thumbnails default to size 3 when size is omitted', () => {
+  const threeByThreeCase = ALGORITHMS.find((algorithm) => algorithm.thumbnail && !algorithm.thumbnail.size);
+  assert.ok(threeByThreeCase);
+  assert.equal(threeByThreeCase.thumbnail?.uFace.length, 3);
 });

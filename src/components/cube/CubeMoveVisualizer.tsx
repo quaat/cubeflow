@@ -4,43 +4,41 @@ import { ParsedMove } from '@/lib/notation';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/store/useSettingsStore';
 
-const S = 22; // Cubie size
-const GAP = 1.5;
-const OFFSET = S + GAP;
+function getMoveDetails(move: ParsedMove, cubeSize: 3 | 4) {
+  const n = cubeSize;
+  const last = n - 1;
+  const second = n - 2;
 
-const FACE_TRANSFORMS = {
-  F: `translateZ(${S/2}px)`,
-  B: `rotateY(180deg) translateZ(${S/2}px)`,
-  R: `rotateY(90deg) translateZ(${S/2}px)`,
-  L: `rotateY(-90deg) translateZ(${S/2}px)`,
-  U: `rotateX(90deg) translateZ(${S/2}px)`,
-  D: `rotateX(-90deg) translateZ(${S/2}px)`,
-};
-
-function getMoveDetails(move: ParsedMove) {
   let axis: 'x' | 'y' | 'z' = 'x';
   let layers: number[] = [];
   let angle = 90;
 
   switch (move.base) {
-    case 'R': axis = 'x'; layers = [1]; angle = 90; break;
-    case 'L': axis = 'x'; layers = [-1]; angle = -90; break;
-    case 'U': axis = 'y'; layers = [-1]; angle = -90; break;
-    case 'D': axis = 'y'; layers = [1]; angle = 90; break;
-    case 'F': axis = 'z'; layers = [1]; angle = 90; break;
-    case 'B': axis = 'z'; layers = [-1]; angle = -90; break;
-    case 'M': axis = 'x'; layers = [0]; angle = -90; break;
-    case 'E': axis = 'y'; layers = [0]; angle = 90; break;
-    case 'S': axis = 'z'; layers = [0]; angle = 90; break;
-    case 'Rw': case 'r': axis = 'x'; layers = [0, 1]; angle = 90; break;
-    case 'Lw': case 'l': axis = 'x'; layers = [-1, 0]; angle = -90; break;
-    case 'Uw': case 'u': axis = 'y'; layers = [-1, 0]; angle = -90; break;
-    case 'Dw': case 'd': axis = 'y'; layers = [0, 1]; angle = 90; break;
-    case 'Fw': case 'f': axis = 'z'; layers = [0, 1]; angle = 90; break;
-    case 'Bw': case 'b': axis = 'z'; layers = [-1, 0]; angle = -90; break;
-    case 'x': axis = 'x'; layers = [-1, 0, 1]; angle = 90; break;
-    case 'y': axis = 'y'; layers = [-1, 0, 1]; angle = -90; break;
-    case 'z': axis = 'z'; layers = [-1, 0, 1]; angle = 90; break;
+    case 'R': axis = 'x'; layers = [last]; angle = 90; break;
+    case 'L': axis = 'x'; layers = [0]; angle = -90; break;
+    case 'U': axis = 'y'; layers = [0]; angle = -90; break;
+    case 'D': axis = 'y'; layers = [last]; angle = 90; break;
+    case 'F': axis = 'z'; layers = [last]; angle = 90; break;
+    case 'B': axis = 'z'; layers = [0]; angle = -90; break;
+    case 'M': axis = 'x'; layers = [Math.floor((n - 1) / 2)]; angle = -90; break;
+    case 'E': axis = 'y'; layers = [Math.floor((n - 1) / 2)]; angle = 90; break;
+    case 'S': axis = 'z'; layers = [Math.floor((n - 1) / 2)]; angle = 90; break;
+    case 'Rw': axis = 'x'; layers = [second, last]; angle = 90; break;
+    case 'Lw': axis = 'x'; layers = [0, 1]; angle = -90; break;
+    case 'Uw': axis = 'y'; layers = [0, 1]; angle = -90; break;
+    case 'Dw': axis = 'y'; layers = [second, last]; angle = 90; break;
+    case 'Fw': axis = 'z'; layers = [second, last]; angle = 90; break;
+    case 'Bw': axis = 'z'; layers = [0, 1]; angle = -90; break;
+    // Preserve 3x3 behavior while giving 4x4 true inner-slice behavior.
+    case 'r': axis = 'x'; layers = cubeSize === 4 ? [second] : [second, last]; angle = 90; break;
+    case 'l': axis = 'x'; layers = cubeSize === 4 ? [1] : [0, 1]; angle = -90; break;
+    case 'u': axis = 'y'; layers = cubeSize === 4 ? [1] : [0, 1]; angle = -90; break;
+    case 'd': axis = 'y'; layers = cubeSize === 4 ? [second] : [second, last]; angle = 90; break;
+    case 'f': axis = 'z'; layers = cubeSize === 4 ? [second] : [second, last]; angle = 90; break;
+    case 'b': axis = 'z'; layers = cubeSize === 4 ? [1] : [0, 1]; angle = -90; break;
+    case 'x': axis = 'x'; layers = Array.from({ length: n }, (_, i) => i); angle = 90; break;
+    case 'y': axis = 'y'; layers = Array.from({ length: n }, (_, i) => i); angle = -90; break;
+    case 'z': axis = 'z'; layers = Array.from({ length: n }, (_, i) => i); angle = 90; break;
   }
 
   if (move.isPrime) angle *= -1;
@@ -50,6 +48,12 @@ function getMoveDetails(move: ParsedMove) {
 }
 
 type CubieProps = {
+  key?: React.Key;
+  cubeSize: 3 | 4;
+  cubieSize: number;
+  offset: number;
+  minLayer: number;
+  maxLayer: number;
   x: number;
   y: number;
   z: number;
@@ -57,18 +61,26 @@ type CubieProps = {
   accentColor?: string;
 };
 
-function Cubie({ x, y, z, isRotating, accentColor }: CubieProps) {
-  const cx = x * OFFSET;
-  const cy = y * OFFSET;
-  const cz = z * OFFSET;
+function Cubie({ cubeSize, cubieSize, offset, minLayer, maxLayer, x, y, z, isRotating, accentColor }: CubieProps) {
+  const faceTransforms = {
+    F: `translateZ(${cubieSize / 2}px)`,
+    B: `rotateY(180deg) translateZ(${cubieSize / 2}px)`,
+    R: `rotateY(90deg) translateZ(${cubieSize / 2}px)`,
+    L: `rotateY(-90deg) translateZ(${cubieSize / 2}px)`,
+    U: `rotateX(90deg) translateZ(${cubieSize / 2}px)`,
+    D: `rotateX(-90deg) translateZ(${cubieSize / 2}px)`,
+  } as const;
+  const cx = x * offset;
+  const cy = y * offset;
+  const cz = z * offset;
 
   const ext = {
-    R: x === 1,
-    L: x === -1,
-    D: y === 1,
-    U: y === -1,
-    F: z === 1,
-    B: z === -1,
+    R: x === maxLayer,
+    L: x === minLayer,
+    D: y === maxLayer,
+    U: y === minLayer,
+    F: z === maxLayer,
+    B: z === minLayer,
   };
 
   const getFaceClass = (face: string, isExt: boolean) => {
@@ -83,15 +95,15 @@ function Cubie({ x, y, z, isRotating, accentColor }: CubieProps) {
   };
 
   return (
-    <div 
-      className="absolute preserve-3d"
-      style={{
-        width: S, height: S,
-        left: -S/2, top: -S/2,
+      <div
+        className="absolute preserve-3d"
+        style={{
+        width: cubieSize, height: cubieSize,
+        left: -cubieSize / 2, top: -cubieSize / 2,
         transform: `translate3d(${cx}px, ${cy}px, ${cz}px)`
       }}
     >
-      {Object.entries(FACE_TRANSFORMS).map(([face, transform]) => {
+      {Object.entries(faceTransforms).map(([face, transform]) => {
         const isExt = ext[face as keyof typeof ext];
         return (
           <div
@@ -117,30 +129,49 @@ function Cubie({ x, y, z, isRotating, accentColor }: CubieProps) {
 
 interface CubeMoveVisualizerProps {
   move: ParsedMove;
+  cubeSize?: 3 | 4;
   className?: string;
   active?: boolean;
   playAnimation?: boolean;
   continuousAnimation?: boolean;
 }
 
-export function CubeMoveVisualizer({ move, className, active, playAnimation, continuousAnimation }: CubeMoveVisualizerProps) {
-  const { axis, layers, angle } = getMoveDetails(move);
+export function CubeMoveVisualizer({ move, cubeSize = 3, className, active, playAnimation, continuousAnimation }: CubeMoveVisualizerProps) {
+  const cubieSize = cubeSize === 4 ? 16 : 22;
+  const gap = cubeSize === 4 ? 1.2 : 1.5;
+  const offset = cubieSize + gap;
+  const layerValues = useMemo(
+    () => Array.from({ length: cubeSize }, (_, i) => i - (cubeSize - 1) / 2),
+    [cubeSize]
+  );
+  const minLayer = layerValues[0];
+  const maxLayer = layerValues[layerValues.length - 1];
+
+  const { axis, layers, angle } = getMoveDetails(move, cubeSize);
   const { cubeRotationSpeed } = useSettingsStore();
   
   const cubies = useMemo(() => {
-    const arr = [];
-    for (let x = -1; x <= 1; x++) {
-      for (let y = -1; y <= 1; y++) {
-        for (let z = -1; z <= 1; z++) {
-          arr.push({ x, y, z });
+    const arr: { xi: number; yi: number; zi: number; x: number; y: number; z: number }[] = [];
+    for (let xi = 0; xi < cubeSize; xi++) {
+      for (let yi = 0; yi < cubeSize; yi++) {
+        for (let zi = 0; zi < cubeSize; zi++) {
+          arr.push({
+            xi,
+            yi,
+            zi,
+            x: layerValues[xi],
+            y: layerValues[yi],
+            z: layerValues[zi],
+          });
         }
       }
     }
     return arr;
-  }, []);
+  }, [cubeSize, layerValues]);
 
-  const rotatingCubies = cubies.filter(c => layers.includes(c[axis]));
-  const stationaryCubies = cubies.filter(c => !layers.includes(c[axis]));
+  const axisIndexKey = axis === 'x' ? 'xi' : axis === 'y' ? 'yi' : 'zi';
+  const rotatingCubies = cubies.filter(c => layers.includes(c[axisIndexKey]));
+  const stationaryCubies = cubies.filter(c => !layers.includes(c[axisIndexKey]));
 
   const rotateKey = `rotate${axis.toUpperCase()}`;
 
@@ -171,7 +202,18 @@ export function CubeMoveVisualizer({ move, className, active, playAnimation, con
         {/* Stationary Layer */}
         <div className="absolute inset-0 preserve-3d">
           {stationaryCubies.map((c, i) => (
-            <Cubie key={`stat-${i}`} {...c} isRotating={false} />
+            <Cubie
+              key={`stat-${i}`}
+              cubeSize={cubeSize}
+              cubieSize={cubieSize}
+              offset={offset}
+              minLayer={minLayer}
+              maxLayer={maxLayer}
+              x={c.x}
+              y={c.y}
+              z={c.z}
+              isRotating={false}
+            />
           ))}
         </div>
 
@@ -186,7 +228,19 @@ export function CubeMoveVisualizer({ move, className, active, playAnimation, con
           }
         >
           {rotatingCubies.map((c, i) => (
-            <Cubie key={`rot-${i}`} {...c} isRotating={true} accentColor={continuousAnimation || hasAnimated ? accentColor : undefined} />
+            <Cubie
+              key={`rot-${i}`}
+              cubeSize={cubeSize}
+              cubieSize={cubieSize}
+              offset={offset}
+              minLayer={minLayer}
+              maxLayer={maxLayer}
+              x={c.x}
+              y={c.y}
+              z={c.z}
+              isRotating={true}
+              accentColor={continuousAnimation || hasAnimated ? accentColor : undefined}
+            />
           ))}
         </motion.div>
       </motion.div>

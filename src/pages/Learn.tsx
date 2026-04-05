@@ -120,7 +120,13 @@ export function Learn() {
                   <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Sequence Breakdown</h3>
                   <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                     {parseNotation(selectedCase.sequence).map((move, i) => (
-                      <MoveCard key={i} move={move} className="scale-90 origin-top-left" continuousAnimation={true} />
+                      <MoveCard
+                        key={i}
+                        move={move}
+                        cubeSize={selectedCase.cubeSize ?? 3}
+                        className="scale-90 origin-top-left"
+                        continuousAnimation={true}
+                      />
                     ))}
                   </div>
                 </div>

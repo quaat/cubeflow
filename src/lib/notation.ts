@@ -14,6 +14,7 @@ export interface ParsedMove {
   isPrime: boolean;
   isDouble: boolean;
   isWide: boolean;
+  isInnerSlice: boolean;
   isSlice: boolean;
   isRotation: boolean;
 }
@@ -35,7 +36,8 @@ export function parseNotation(sequence: string): ParsedMove[] {
       baseStr = move.slice(0, -1);
     }
     
-    const isWide = baseStr.endsWith('w') || /^[rludfb]$/.test(baseStr);
+    const isInnerSlice = /^[rludfb]$/.test(baseStr);
+    const isWide = baseStr.endsWith('w') || isInnerSlice;
     const isSlice = /^[MES]$/.test(baseStr);
     const isRotation = /^[xyz]$/.test(baseStr);
     
@@ -46,6 +48,7 @@ export function parseNotation(sequence: string): ParsedMove[] {
       isPrime,
       isDouble,
       isWide,
+      isInnerSlice,
       isSlice,
       isRotation
     };
