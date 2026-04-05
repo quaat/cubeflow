@@ -31,157 +31,6 @@ export const CATEGORIES: readonly AlgorithmCategory[] = [
 export const ALGORITHMS: AlgorithmCase[] = [
   // Beginner Cases
   {
-    id: "beginner-cross-r",
-    name: "Cross Helper - Single Turn",
-    category: "Beginner",
-    subgroup: "Step 1 - White Cross",
-    sequence: "R",
-    description: "Simple white-cross helper used in the beginner guide for a basic edge insertion case.",
-    difficulty: 1,
-    tags: ["beginner", "cross", "micro"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['X', 'W', 'X'],
-        ['W', 'W', 'X'],
-        ['X', 'X', 'X']
-      ],
-      arrows: [{ start: [1, 2], end: [2, 1], curved: true }]
-    }
-  },
-  {
-    id: "beginner-cross-fr",
-    name: "Cross Helper - Front Right",
-    category: "Beginner",
-    subgroup: "Step 1 - White Cross",
-    sequence: "F R",
-    description: "White-cross helper used for a slightly more involved edge insertion case.",
-    difficulty: 1,
-    tags: ["beginner", "cross", "micro"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['X', 'W', 'X'],
-        ['W', 'W', 'X'],
-        ['X', 'X', 'X']
-      ],
-      arrows: [{ start: [2, 1], end: [1, 2], curved: true }]
-    }
-  },
-  {
-    id: "beginner-cross-fru",
-    name: "Cross Helper - Front Right Up",
-    category: "Beginner",
-    subgroup: "Step 1 - White Cross",
-    sequence: "F R U",
-    description: "White-cross helper used for a three-move setup case in the beginner guide.",
-    difficulty: 1,
-    tags: ["beginner", "cross", "micro"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['X', 'W', 'X'],
-        ['W', 'W', 'X'],
-        ['X', 'X', 'X']
-      ]
-    }
-  },
-  {
-    id: "beginner-cross-edge-swap",
-    name: "Cross Edge Swap",
-    category: "Beginner",
-    subgroup: "Step 1 - White Cross",
-    sequence: "R' U' R U R'",
-    description: "Swaps/moves misaligned cross edges without disturbing the rest of the white cross.",
-    difficulty: 2,
-    tags: ["beginner", "cross", "swap"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['X', 'W', 'X'],
-        ['W', 'W', 'W'],
-        ['X', 'W', 'X']
-      ],
-      arrows: [{ start: [1, 2], end: [2, 1], bidirectional: true, curved: true }]
-    }
-  },
-  {
-    id: "beginner-corner-fdf",
-    name: "Corner Insert - White Facing Front",
-    category: "Beginner",
-    subgroup: "Step 2 - First Layer Corners",
-    sequence: "F D F'",
-    description: "Inserts a first-layer corner when the white sticker is facing the front.",
-    difficulty: 1,
-    tags: ["beginner", "first-layer", "corners"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['W', 'W', 'W'],
-        ['W', 'W', 'W'],
-        ['W', 'W', 'X']
-      ],
-      arrows: [{ start: [2, 2], end: [2, 2] }]
-    }
-  },
-  {
-    id: "beginner-corner-rdpr",
-    name: "Corner Insert - White Facing Right",
-    category: "Beginner",
-    subgroup: "Step 2 - First Layer Corners",
-    sequence: "R' D' R",
-    description: "Inserts a first-layer corner when the white sticker is facing right.",
-    difficulty: 1,
-    tags: ["beginner", "first-layer", "corners"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['W', 'W', 'W'],
-        ['W', 'W', 'W'],
-        ['W', 'W', 'X']
-      ],
-      arrows: [{ start: [2, 2], end: [2, 2] }]
-    }
-  },
-  {
-    id: "beginner-corner-rdrf-d2f",
-    name: "Corner Insert - White Facing Down",
-    category: "Beginner",
-    subgroup: "Step 2 - First Layer Corners",
-    sequence: "R' D R F D2 F'",
-    description: "Inserts a first-layer corner when the white sticker is facing downward.",
-    difficulty: 2,
-    tags: ["beginner", "first-layer", "corners"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['W', 'W', 'W'],
-        ['W', 'W', 'W'],
-        ['W', 'W', 'X']
-      ],
-      arrows: [{ start: [2, 2], end: [2, 2] }]
-    }
-  },
-  {
-    id: "beginner-corner-reorient",
-    name: "Corner Reorient In Place",
-    category: "Beginner",
-    subgroup: "Step 2 - First Layer Corners",
-    sequence: "R' D R F D F'",
-    description: "Reorients a first-layer corner that is already in the correct slot but twisted incorrectly.",
-    difficulty: 2,
-    tags: ["beginner", "first-layer", "corners", "reorient"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['W', 'W', 'W'],
-        ['W', 'W', 'W'],
-        ['W', 'W', 'X']
-      ],
-      arrows: [{ start: [2, 2], end: [2, 2], curved: true }]
-    }
-  },
-  {
     id: "beginner-second-right",
     name: "Second Layer Insert Right",
     category: "Beginner",
@@ -193,11 +42,17 @@ export const ALGORITHMS: AlgorithmCase[] = [
     accentColor: "#2dd4bf",
     thumbnail: {
       uFace: [
-        ['X', 'X', 'X'],
+        ['X', 'G', 'X'],
         ['X', 'G', 'X'],
         ['G', 'G', 'G']
       ],
-      arrows: [{ start: [0, 1], end: [1, 2], curved: true }]
+      sideRing: {
+        front: ['U', 'U', 'U'],
+        right: ['O', 'U', 'U'],
+        back: ['U', 'O', 'U'],
+        left: ['U', 'U', 'U']
+      },
+      arrows: [{ start: [0, 1], end: [1, 2], curved: false }]
     }
   },
   {
@@ -212,47 +67,34 @@ export const ALGORITHMS: AlgorithmCase[] = [
     accentColor: "#2dd4bf",
     thumbnail: {
       uFace: [
-        ['X', 'X', 'X'],
+        ['X', 'G', 'X'],
         ['X', 'G', 'X'],
         ['G', 'G', 'G']
       ],
-      arrows: [{ start: [0, 1], end: [1, 0], curved: true }]
-    }
-  },
-  {
-    id: "beginner-second-awkward",
-    name: "Second Layer Awkward Case",
-    category: "Beginner",
-    subgroup: "Step 3 - Second Layer",
-    sequence: "R U' R' U F' U2 F U F' U2 F",
-    description: "Longer beginner-guide algorithm for the awkward second-layer case where the edge is stuck/flipped unfavorably.",
-    difficulty: 3,
-    tags: ["beginner", "second-layer", "edge-flip", "advanced-beginner"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['X', 'X', 'X'],
-        ['X', 'X', 'X'],
-        ['X', 'X', 'X']
-      ],
-      arrows: [{ start: [1, 2], end: [1, 2], curved: true }]
+      sideRing: {
+        front: ['U', 'U', 'U'],
+        right: ['U', 'U', 'U'],
+        back: ['U', 'R', 'U'],
+        left: ['U', 'U', 'R']
+      },
+      arrows: [{ start: [0, 1], end: [1, 0], curved: false }]
     }
   },
   {
     id: "beginner-last-cross-l",
-    name: "Last Layer Cross - Backward L",
+    name: "Last Layer Cross - Upside Down L",
     category: "Beginner",
     subgroup: "Step 4 - Last Layer Cross",
-    sequence: "F U R U' R' F'",
+    sequence: "f R U R' U' f'",
     description: "Used when the yellow top face shows the backward-L shape; hold the L in the top-left orientation.",
     difficulty: 2,
     tags: ["beginner", "last-layer", "cross", "l-shape"],
     accentColor: "#2dd4bf",
     thumbnail: {
       uFace: [
-        ['X', 'Y', 'X'],
-        ['Y', 'Y', 'X'],
-        ['X', 'X', 'X']
+        ['X', 'X', 'X'],
+        ['X', 'Y', 'Y'],
+        ['X', 'Y', 'X']
       ]
     }
   },
@@ -279,7 +121,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
     name: "Last Layer Cross - Dot",
     category: "Beginner",
     subgroup: "Step 4 - Last Layer Cross",
-    sequence: "F U R U' R' F' F R U R' U' F'",
+    sequence: "R U R' U'",
     description: "Explicit training version of the dot case: perform the backward-L algorithm, then the line algorithm.",
     difficulty: 3,
     tags: ["beginner", "last-layer", "cross", "dot"],
@@ -297,7 +139,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
     name: "Last Layer Edges - Adjacent Swap",
     category: "Beginner",
     subgroup: "Step 5 - Last Layer Edges",
-    sequence: "U R U R' U R U2 R'",
+    sequence: "R U R' U R U2 R' U",
     description: "Use when the two unsolved last-layer edges are adjacent; hold them in the front and right faces.",
     difficulty: 2,
     tags: ["beginner", "last-layer", "edges", "adjacent"],
@@ -308,26 +150,7 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['Y', 'Y', 'Y'],
         ['X', 'Y', 'X']
       ],
-      arrows: [{ start: [2, 1], end: [1, 2], bidirectional: true, curved: true }]
-    }
-  },
-  {
-    id: "beginner-last-edges-opposite",
-    name: "Last Layer Edges - Opposite Swap",
-    category: "Beginner",
-    subgroup: "Step 5 - Last Layer Edges",
-    sequence: "U R U R' U R U2 R' U R U R' U R U2 R'",
-    description: "Explicit training version of the opposite-edge case: perform the adjacent-swap algorithm twice.",
-    difficulty: 3,
-    tags: ["beginner", "last-layer", "edges", "opposite"],
-    accentColor: "#2dd4bf",
-    thumbnail: {
-      uFace: [
-        ['X', 'Y', 'X'],
-        ['Y', 'Y', 'Y'],
-        ['X', 'Y', 'X']
-      ],
-      arrows: [{ start: [0, 1], end: [2, 1], bidirectional: true }]
+      arrows: [{ start: [2, 1], end: [1, 0], bidirectional: true, curved: true }]
     }
   },
   {
@@ -347,9 +170,9 @@ export const ALGORITHMS: AlgorithmCase[] = [
         ['X', 'Y', 'Y']
       ],
       arrows: [
-        { start: [0, 0], end: [0, 2], curved: true },
-        { start: [0, 2], end: [2, 0], curved: true },
-        { start: [2, 0], end: [0, 0], curved: true }
+        { start: [0, 0], end: [0, 2], curved: false },
+        { start: [0, 2], end: [2, 0], curved: false },
+        { start: [2, 0], end: [0, 0], curved: false }
       ]
     }
   },
