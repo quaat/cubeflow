@@ -1,10 +1,10 @@
 import React from 'react';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { Volume2, VolumeX, Zap, MonitorPlay } from 'lucide-react';
+import { Volume2, VolumeX, Zap, MonitorPlay, Code2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Settings() {
-  const { soundEnabled, reducedMotion, arcadeSpeed, toggleSound, toggleReducedMotion, setArcadeSpeed } = useSettingsStore();
+  const { soundEnabled, reducedMotion, useChunks, arcadeSpeed, toggleSound, toggleReducedMotion, toggleUseChunks, setArcadeSpeed } = useSettingsStore();
 
   return (
     <div className="flex-1 flex flex-col p-6 max-w-2xl mx-auto w-full">
@@ -61,6 +61,32 @@ export function Settings() {
               <span className={cn(
                 "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
                 reducedMotion ? "translate-x-6" : "translate-x-1"
+              )} />
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 p-6 rounded-2xl ring-1 ring-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-violet-500/20 text-violet-400 rounded-lg">
+                <Code2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-200">Use chunks</h3>
+                <p className="text-sm text-slate-400">Show grouped notation and step chunking in trainers</p>
+              </div>
+            </div>
+            <button 
+              onClick={toggleUseChunks}
+              className={cn(
+                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                useChunks ? "bg-violet-500" : "bg-slate-700"
+              )}
+            >
+              <span className={cn(
+                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                useChunks ? "translate-x-6" : "translate-x-1"
               )} />
             </button>
           </div>

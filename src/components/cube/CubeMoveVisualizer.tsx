@@ -128,7 +128,8 @@ function Cubie({ cubeSize, cubieSize, offset, minLayer, maxLayer, x, y, z, isRot
 }
 
 interface CubeMoveVisualizerProps {
-  move: ParsedMove;
+  move?: ParsedMove;
+  moves?: ParsedMove[];
   cubeSize?: 3 | 4;
   className?: string;
   active?: boolean;
@@ -136,7 +137,61 @@ interface CubeMoveVisualizerProps {
   continuousAnimation?: boolean;
 }
 
-export function CubeMoveVisualizer({ move, cubeSize = 3, className, active, playAnimation, continuousAnimation }: CubeMoveVisualizerProps) {
+export function CubeMoveVisualizer({ move, moves, cubeSize = 3, className, active, playAnimation, continuousAnimation }: CubeMoveVisualizerProps) {
+  const moveSequence = useMemo(() => {
+    if (moves && moves.length > 0) return moves;
+    return move ? [move] : [];
+  }, [move, moves]);
+
+  const { cubeRotationSpeed } = useSettingsStore();
+  const stepDurationMs = Math.max(1, 600 / cubeRotationSpeed);
+  const [currentMoveIndex, setCurrentMoveIndex] = React.useState(0);
+  const [animationTick, setAnimationTick] = React.useState(0);
+
+  React.useEffect(() => {
+    setCurrentMoveIndex(0);
+    setAnimationTick(0);
+  }, [moveSequence]);
+
+  React.useEffect(() => {
+    if (!continuousAnimation || moveSequence.length === 0) return;
+    setCurrentMoveIndex(0);
+    setAnimationTick((prev) => prev + 1);
+
+    let index = 0;
+    const intervalId = window.setInterval(() => {
+      index = (index + 1) % moveSequence.length;
+      setCurrentMoveIndex(index);
+      setAnimationTick((prev) => prev + 1);
+    }, stepDurationMs);
+
+    return () => window.clearInterval(intervalId);
+  }, [continuousAnimation, moveSequence, stepDurationMs]);
+
+  React.useEffect(() => {
+    if (continuousAnimation || !playAnimation || moveSequence.length === 0) return;
+    setCurrentMoveIndex(0);
+    setAnimationTick((prev) => prev + 1);
+
+    if (moveSequence.length === 1) return;
+
+    let index = 0;
+    const intervalId = window.setInterval(() => {
+      index += 1;
+      if (index >= moveSequence.length) {
+        window.clearInterval(intervalId);
+        return;
+      }
+      setCurrentMoveIndex(index);
+      setAnimationTick((prev) => prev + 1);
+    }, stepDurationMs);
+
+    return () => window.clearInterval(intervalId);
+  }, [continuousAnimation, playAnimation, moveSequence, stepDurationMs]);
+
+  const activeMove = moveSequence[currentMoveIndex];
+  if (!activeMove) return null;
+
   const cubieSize = cubeSize === 4 ? 16 : 22;
   const gap = cubeSize === 4 ? 1.2 : 1.5;
   const offset = cubieSize + gap;
@@ -147,8 +202,7 @@ export function CubeMoveVisualizer({ move, cubeSize = 3, className, active, play
   const minLayer = layerValues[0];
   const maxLayer = layerValues[layerValues.length - 1];
 
-  const { axis, layers, angle } = getMoveDetails(move, cubeSize);
-  const { cubeRotationSpeed } = useSettingsStore();
+  const { axis, layers, angle } = getMoveDetails(activeMove, cubeSize);
   
   const cubies = useMemo(() => {
     const arr: { xi: number; yi: number; zi: number; x: number; y: number; z: number }[] = [];
@@ -176,22 +230,16 @@ export function CubeMoveVisualizer({ move, cubeSize = 3, className, active, play
   const rotateKey = `rotate${axis.toUpperCase()}`;
 
   let accentColor = "#818cf8"; 
-  if (['R', 'r', 'Rw'].includes(move.base)) accentColor = "#f87171"; 
-  else if (['L', 'l', 'Lw'].includes(move.base)) accentColor = "#fb923c"; 
-  else if (['U', 'u', 'Uw'].includes(move.base)) accentColor = "#facc15"; 
-  else if (['D', 'd', 'Dw'].includes(move.base)) accentColor = "#94a3b8"; 
-  else if (['F', 'f', 'Fw'].includes(move.base)) accentColor = "#4ade80"; 
-  else if (['B', 'b', 'Bw'].includes(move.base)) accentColor = "#60a5fa"; 
-  else if (move.isSlice) accentColor = "#c084fc";
-  else if (move.isRotation) accentColor = "#f472b6";
+  if (['R', 'r', 'Rw'].includes(activeMove.base)) accentColor = "#f87171"; 
+  else if (['L', 'l', 'Lw'].includes(activeMove.base)) accentColor = "#fb923c"; 
+  else if (['U', 'u', 'Uw'].includes(activeMove.base)) accentColor = "#facc15"; 
+  else if (['D', 'd', 'Dw'].includes(activeMove.base)) accentColor = "#94a3b8"; 
+  else if (['F', 'f', 'Fw'].includes(activeMove.base)) accentColor = "#4ade80"; 
+  else if (['B', 'b', 'Bw'].includes(activeMove.base)) accentColor = "#60a5fa"; 
+  else if (activeMove.isSlice) accentColor = "#c084fc";
+  else if (activeMove.isRotation) accentColor = "#f472b6";
 
-  const [hasAnimated, setHasAnimated] = React.useState(false);
-  
-  React.useEffect(() => {
-    if (playAnimation && !hasAnimated) {
-      setHasAnimated(true);
-    }
-  }, [playAnimation, hasAnimated]);
+  const shouldAnimate = Boolean(playAnimation || continuousAnimation);
 
   return (
     <div className={cn("relative w-full h-full flex items-center justify-center perspective-[800px]", className)}>
@@ -219,13 +267,11 @@ export function CubeMoveVisualizer({ move, cubeSize = 3, className, active, play
 
         {/* Rotating Layer */}
         <motion.div 
+          key={`${activeMove.raw}-${currentMoveIndex}-${animationTick}`}
           className="absolute inset-0 preserve-3d"
           initial={{ [rotateKey]: 0 }}
-          animate={{ [rotateKey]: continuousAnimation ? [0, angle, angle] : (hasAnimated ? angle : 0) }}
-          transition={continuousAnimation 
-            ? { duration: 1.5, times: [0, 0.6, 1], repeat: Infinity, ease: "easeInOut" }
-            : { duration: 0.6 / cubeRotationSpeed, ease: "easeInOut" }
-          }
+          animate={{ [rotateKey]: shouldAnimate ? angle : 0 }}
+          transition={{ duration: stepDurationMs / 1000, ease: "easeInOut" }}
         >
           {rotatingCubies.map((c, i) => (
             <Cubie
@@ -239,7 +285,7 @@ export function CubeMoveVisualizer({ move, cubeSize = 3, className, active, play
               y={c.y}
               z={c.z}
               isRotating={true}
-              accentColor={continuousAnimation || hasAnimated ? accentColor : undefined}
+              accentColor={shouldAnimate ? accentColor : undefined}
             />
           ))}
         </motion.div>

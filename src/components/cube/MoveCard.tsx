@@ -1,10 +1,11 @@
 import React from 'react';
-import { ParsedMove } from '@/lib/notation';
+import { NotationStep, ParsedMove } from '@/lib/notation';
 import { cn } from '@/lib/utils';
 import { CubeMoveVisualizer } from './CubeMoveVisualizer';
 
 interface MoveCardProps extends React.HTMLAttributes<HTMLDivElement> {
-  move: ParsedMove;
+  move?: ParsedMove;
+  step?: NotationStep;
   cubeSize?: 3 | 4;
   className?: string;
   active?: boolean;
@@ -13,7 +14,15 @@ interface MoveCardProps extends React.HTMLAttributes<HTMLDivElement> {
   key?: React.Key;
 }
 
-export function MoveCard({ move, cubeSize = 3, className, active, playAnimation, continuousAnimation, ...props }: MoveCardProps) {
+export function MoveCard({ move, step, cubeSize = 3, className, active, playAnimation, continuousAnimation, ...props }: MoveCardProps) {
+  const resolvedStep: NotationStep | undefined = step ?? (move ? {
+    type: 'move',
+    label: move.raw,
+    moves: [move],
+  } : undefined);
+
+  if (!resolvedStep) return null;
+
   return (
     <div 
       {...props}
@@ -30,7 +39,7 @@ export function MoveCard({ move, cubeSize = 3, className, active, playAnimation,
       {/* 3D Cube Visualizer */}
       <div className="absolute inset-0 pt-4 pb-8">
         <CubeMoveVisualizer
-          move={move}
+          moves={resolvedStep.moves}
           cubeSize={cubeSize}
           active={active}
           playAnimation={playAnimation}
@@ -46,7 +55,7 @@ export function MoveCard({ move, cubeSize = 3, className, active, playAnimation,
             ? "text-base text-white bg-indigo-600/90 border-indigo-400 px-4 py-1 shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
             : "text-sm text-slate-300 bg-slate-950/80 border-slate-700 px-3 py-1"
         )}>
-          {move.raw}
+          {resolvedStep.label}
         </span>
       </div>
     </div>

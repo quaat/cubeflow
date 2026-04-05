@@ -2,11 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ALGORITHMS } from '@/config/algorithms';
 import { useProgressStore } from '@/store/useProgressStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { CaseThumbnail } from '@/components/cube/CaseThumbnail';
+import { getDisplayNotation } from '@/lib/notation';
 import { CheckCircle2, XCircle, HelpCircle, ArrowRight } from 'lucide-react';
 
 export function Drill() {
   const { mastery, updateMastery, addHistory } = useProgressStore();
+  const useChunks = useSettingsStore((state) => state.useChunks);
   
   // Simple spaced repetition logic: prioritize items with lowest mastery
   const drillQueue = useMemo(() => {
@@ -21,6 +24,10 @@ export function Drill() {
   const [showAnswer, setShowAnswer] = useState(false);
 
   const currentCase = drillQueue[currentIndex];
+  const displaySequence = React.useMemo(
+    () => (currentCase ? getDisplayNotation(currentCase.sequence, useChunks) : ''),
+    [currentCase, useChunks]
+  );
 
   const handleRating = (rating: 'hard' | 'good' | 'easy') => {
     let masteryChange = 0;
@@ -112,7 +119,7 @@ export function Drill() {
                 className="w-full flex flex-col items-center"
               >
                 <div className="text-2xl font-mono font-bold text-indigo-300 mb-8 bg-indigo-950/30 px-6 py-3 rounded-xl ring-1 ring-indigo-500/30">
-                  {currentCase.sequence}
+                  {displaySequence}
                 </div>
 
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">How was your recall?</h3>

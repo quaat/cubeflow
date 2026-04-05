@@ -1,10 +1,14 @@
 import React, { useId } from 'react';
-import { AlgorithmCase } from '@/config/algorithms';
 import { StickerColor, ThumbnailConfig, ThumbnailSideRing } from './thumbnailTypes';
 import { cn } from '@/lib/utils';
 
+type ThumbnailCaseLike = {
+  thumbnail?: ThumbnailConfig;
+  accentColor?: string;
+};
+
 interface CaseThumbnailProps {
-  algo: AlgorithmCase;
+  algo: ThumbnailCaseLike;
   className?: string;
 }
 

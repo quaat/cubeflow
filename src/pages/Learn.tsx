@@ -1,20 +1,75 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ALGORITHMS, CATEGORIES, AlgorithmCase } from '@/config/algorithms';
+import { CORE_ALGORITHMS, CORE_ALGORITHM_THUMBNAILS, CoreAlgorithmName } from '@/config/coreAlgorithms';
 import { CaseThumbnail } from '@/components/cube/CaseThumbnail';
-import { parseNotation } from '@/lib/notation';
+import { expandChunkRegistry, getDisplayNotation, getNotationSteps } from '@/lib/notation';
 import { MoveCard } from '@/components/cube/MoveCard';
 import { useProgressStore } from '@/store/useProgressStore';
-import { Star, Play, ChevronRight, X } from 'lucide-react';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { Star, Play, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
-export function Learn() {
-  const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
-  const [selectedCase, setSelectedCase] = useState<AlgorithmCase | null>(null);
-  const { favorites, toggleFavorite } = useProgressStore();
+const CORE_CATEGORY = 'Core' as const;
 
-  const filteredAlgos = ALGORITHMS.filter(a => a.category === activeCategory);
+type LearnCategory = (typeof CATEGORIES)[number] | typeof CORE_CATEGORY;
+type CoreLearnCase = Omit<AlgorithmCase, 'category'> & {
+  category: typeof CORE_CATEGORY;
+  coreName: CoreAlgorithmName;
+};
+type LearnCase = AlgorithmCase | CoreLearnCase;
+
+const LEARN_CATEGORIES: readonly LearnCategory[] = [...CATEGORIES, CORE_CATEGORY];
+
+export function Learn() {
+  const [activeCategory, setActiveCategory] = useState<LearnCategory>(LEARN_CATEGORIES[0]);
+  const [selectedCase, setSelectedCase] = useState<LearnCase | null>(null);
+  const { favorites, toggleFavorite } = useProgressStore();
+  const useChunks = useSettingsStore((state) => state.useChunks);
+
+  const coreCases = React.useMemo<CoreLearnCase[]>(() => {
+    const expanded = expandChunkRegistry(CORE_ALGORITHMS);
+    return (Object.keys(CORE_ALGORITHMS) as CoreAlgorithmName[]).map((coreName) => ({
+      id: `core-${coreName.toLowerCase()}`,
+      coreName,
+      name: coreName,
+      category: CORE_CATEGORY,
+      subgroup: 'Core Chunk',
+      sequence: expanded[coreName].join(' '),
+      description: `Reusable chunk definition for ${coreName}.`,
+      difficulty: 1,
+      tags: ['core', 'chunk'],
+      accentColor: '#a78bfa',
+      cubeSize: 3,
+      thumbnail: CORE_ALGORITHM_THUMBNAILS[coreName],
+    }));
+  }, []);
+
+  const filteredAlgos = React.useMemo<LearnCase[]>(() => {
+    if (activeCategory === CORE_CATEGORY) return coreCases;
+    return ALGORITHMS.filter((algorithm) => algorithm.category === activeCategory);
+  }, [activeCategory, coreCases]);
+
+  const isCoreSelectedCase = selectedCase?.category === CORE_CATEGORY;
+  const selectedCaseSteps = React.useMemo(
+    () => (
+      selectedCase
+        ? getNotationSteps(selectedCase.sequence, isCoreSelectedCase ? false : useChunks)
+        : []
+    ),
+    [selectedCase, isCoreSelectedCase, useChunks]
+  );
+  const selectedCaseDisplay = React.useMemo(
+    () => (
+      selectedCase
+        ? (isCoreSelectedCase
+          ? selectedCase.sequence
+          : getDisplayNotation(selectedCase.sequence, useChunks))
+        : ''
+    ),
+    [selectedCase, isCoreSelectedCase, useChunks]
+  );
 
   return (
     <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
@@ -25,7 +80,7 @@ export function Learn() {
 
       {/* Category Tabs */}
       <div className="flex space-x-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-        {CATEGORIES.map(cat => (
+        {LEARN_CATEGORIES.map(cat => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
@@ -104,7 +159,7 @@ export function Learn() {
                   <CaseThumbnail algo={selectedCase} className="w-48 h-48 shrink-0 shadow-xl" />
                   <div className="flex-1 text-center md:text-left">
                     <div className="inline-block px-3 py-1 bg-slate-800 rounded-lg text-sm font-mono text-slate-300 mb-4">
-                      {selectedCase.sequence}
+                      {selectedCaseDisplay}
                     </div>
                     <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                       {selectedCase.tags?.map(tag => (
@@ -119,10 +174,10 @@ export function Learn() {
                 <div className="mb-8">
                   <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Sequence Breakdown</h3>
                   <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    {parseNotation(selectedCase.sequence).map((move, i) => (
+                    {selectedCaseSteps.map((step, i) => (
                       <MoveCard
                         key={i}
-                        move={move}
+                        step={step}
                         cubeSize={selectedCase.cubeSize ?? 3}
                         className="scale-90 origin-top-left"
                         continuousAnimation={true}
@@ -132,15 +187,17 @@ export function Learn() {
                 </div>
               </div>
 
-              <div className="p-6 border-t border-slate-800 bg-slate-900/50 flex justify-end gap-4">
-                <Link 
-                  to={`/arcade?case=${selectedCase.id}`}
-                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors"
-                >
-                  <Play className="w-4 h-4" />
-                  Train in Arcade
-                </Link>
-              </div>
+              {selectedCase.category !== CORE_CATEGORY && (
+                <div className="p-6 border-t border-slate-800 bg-slate-900/50 flex justify-end gap-4">
+                  <Link 
+                    to={`/arcade?case=${selectedCase.id}`}
+                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors"
+                  >
+                    <Play className="w-4 h-4" />
+                    Train in Arcade
+                  </Link>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}

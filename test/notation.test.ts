@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseNotation } from '../src/lib/notation.ts';
+import { expandChunkRegistry, getDisplayNotation, getNotationSteps, parseNotation } from '../src/lib/notation.ts';
 
 test('parseNotation returns an empty array for empty or whitespace-only input', () => {
   assert.deepEqual(parseNotation(''), []);
@@ -59,4 +59,45 @@ test('parseNotation supports 4x4 wide, inner-slice, and parity sequences', () =>
   assert.equal(pllParity.length, 6);
   assert.equal(pllParity.filter((move) => move.base === 'r').length, 3);
   assert.equal(pllParity.filter((move) => move.base === 'Uw').length, 2);
+});
+
+test('chunk registry expansion resolves nested references', () => {
+  const expanded = expandChunkRegistry();
+
+  assert.deepEqual(expanded.TRIG_R, ['R', 'U', "R'"]);
+  assert.deepEqual(expanded.SEXY, ['R', 'U', "R'", "U'"]);
+  assert.deepEqual(expanded.OLL_LINE, ['F', 'R', 'U', "R'", "U'", "F'"]);
+  assert.deepEqual(expanded.OLL_L, ['f', 'R', 'U', "R'", "U'", "f'"]);
+  assert.deepEqual(expanded.INSERT, ['U', 'R', "U'", "R'"]);
+});
+
+test('chunk matching prefers longest expansions and avoids overlap', () => {
+  const ollLine = getNotationSteps("F R U R' U' F'", true).map((step) => step.label);
+  assert.deepEqual(ollLine, ['OLL_LINE']);
+
+  const ollL = getNotationSteps("f R U R' U' f'", true).map((step) => step.label);
+  assert.deepEqual(ollL, ['OLL_L']);
+
+  const twistTwice = getNotationSteps("R' D' R D R' D' R D", true).map((step) => step.label);
+  assert.deepEqual(twistTwice, ['TWIST', 'TWIST']);
+});
+
+test('chunked notation falls back to raw moves where no chunk matches', () => {
+  const labels = getNotationSteps("M2 U M2", true).map((step) => step.label);
+  assert.deepEqual(labels, ['M2', 'U', 'M2']);
+});
+
+test('chunk toggle preserves raw behavior when disabled', () => {
+  const labels = getNotationSteps("F R U R' U' F'", false).map((step) => step.label);
+  assert.deepEqual(labels, ['F', 'R', 'U', "R'", "U'", "F'"]);
+});
+
+test('repo sequence compresses to INSERT plus remaining raw moves', () => {
+  const display = getDisplayNotation("U R U' R' U' F' U F", true);
+  assert.equal(display, "INSERT U' F' U F");
+});
+
+test('illustrative sequence compresses to SEXY in the middle', () => {
+  const display = getDisplayNotation("U R U R' U' F' U F", true);
+  assert.equal(display, "U SEXY F' U F");
 });

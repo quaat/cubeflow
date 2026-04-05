@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, useAnimation, useAnimationFrame } from 'motion/react';
 import { ALGORITHMS, AlgorithmCase } from '@/config/algorithms';
-import { parseNotation, ParsedMove } from '@/lib/notation';
+import { getDisplayNotation, getNotationSteps, NotationStep } from '@/lib/notation';
 import { MoveCard } from '@/components/cube/MoveCard';
 import { useProgressStore } from '@/store/useProgressStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -94,10 +94,10 @@ export function Arcade() {
   const navigate = useNavigate();
   const caseId = searchParams.get('case');
   const { addHistory, updateMastery } = useProgressStore();
-  const { arcadeSpeed, cubeRotationSpeed } = useSettingsStore();
+  const { arcadeSpeed, cubeRotationSpeed, useChunks } = useSettingsStore();
   
   const [algo, setAlgo] = useState<AlgorithmCase | null>(null);
-  const [moves, setMoves] = useState<ParsedMove[]>([]);
+  const [steps, setSteps] = useState<NotationStep[]>([]);
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -109,7 +109,7 @@ export function Arcade() {
   const minDuration = animDurationMs / (FADE_FRACTION - MOVE_FRACTION);
   
   const durationPerMove = Math.max(baseDuration, minDuration); // ms per move
-  const totalDuration = moves.length * durationPerMove;
+  const totalDuration = steps.length * durationPerMove;
   
   const startTimeRef = useRef<number | null>(null);
   const pauseTimeRef = useRef<number | null>(null);
@@ -122,10 +122,10 @@ export function Arcade() {
       
     if (selectedAlgo) {
       setAlgo(selectedAlgo);
-      setMoves(parseNotation(selectedAlgo.sequence));
+      setSteps(getNotationSteps(selectedAlgo.sequence, useChunks));
       setPlayCount(0);
     }
-  }, [caseId]);
+  }, [caseId, useChunks]);
 
   useAnimationFrame((time) => {
     if (!isPlaying || isFinished || totalDuration === 0) return;
@@ -213,13 +213,13 @@ export function Arcade() {
 
   if (!algo) return <div className="flex-1 flex items-center justify-center">Loading...</div>;
 
-  const currentMoveIndex = Math.min(
-    Math.floor(progress * moves.length),
-    moves.length - 1
-  );
+  const stepCount = steps.length;
+  const currentMoveIndex = stepCount > 0
+    ? Math.min(Math.floor(progress * stepCount), stepCount - 1)
+    : -1;
   
-  const rawBeatFloat = progress * moves.length;
-  const p = rawBeatFloat - currentMoveIndex;
+  const rawBeatFloat = progress * stepCount;
+  const p = currentMoveIndex >= 0 ? rawBeatFloat - currentMoveIndex : 0;
   
   let currentBeatFloat = 0;
   if (p < MOVE_FRACTION) {
@@ -237,14 +237,14 @@ export function Arcade() {
         <div 
           className="w-[200%] h-[200%] rotate-x-60 translate-y-1/4 bg-[linear-gradient(to_right,#4f46e5_1px,transparent_1px),linear-gradient(to_bottom,#4f46e5_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" 
           style={{
-            backgroundPositionY: `${(progress * moves.length * 4) % 4}rem`
+            backgroundPositionY: `${(progress * stepCount * 4) % 4}rem`
           }}
         />
       </div>
 
       <div className="z-10 text-center mb-12">
         <h2 className="text-4xl font-black tracking-tight mb-2 text-white drop-shadow-lg">{algo.name}</h2>
-        <p className="text-indigo-300 font-mono text-lg">{algo.sequence}</p>
+        <p className="text-indigo-300 font-mono text-lg">{getDisplayNotation(algo.sequence, useChunks)}</p>
       </div>
 
       {/* The Highway */}
@@ -253,7 +253,7 @@ export function Arcade() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-[400px] bg-indigo-500/10 blur-3xl rounded-full pointer-events-none" />
         
         <div className="absolute inset-0 flex items-center justify-center">
-          {moves.map((move, i) => {
+          {steps.map((step, i) => {
             // Calculate position based on distance in beats
             const distance = i - currentBeatFloat;
             
@@ -287,7 +287,7 @@ export function Arcade() {
                 }}
               >
                 <MoveCard 
-                  move={move} 
+                  step={step}
                   cubeSize={algo.cubeSize ?? 3}
                   active={isActive}
                   playAnimation={playAnimation}
