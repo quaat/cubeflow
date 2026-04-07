@@ -12,15 +12,19 @@ import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
 const CORE_CATEGORY = 'Core' as const;
+const FAVORITES_CATEGORY = 'Favorites' as const;
 
-type LearnCategory = (typeof CATEGORIES)[number] | typeof CORE_CATEGORY;
+type LearnCategory =
+  | (typeof CATEGORIES)[number]
+  | typeof CORE_CATEGORY
+  | typeof FAVORITES_CATEGORY;
 type CoreLearnCase = Omit<AlgorithmCase, 'category'> & {
   category: typeof CORE_CATEGORY;
   coreName: CoreAlgorithmName;
 };
 type LearnCase = AlgorithmCase | CoreLearnCase;
 
-const LEARN_CATEGORIES: readonly LearnCategory[] = [...CATEGORIES, CORE_CATEGORY];
+const LEARN_CATEGORIES: readonly LearnCategory[] = [...CATEGORIES, CORE_CATEGORY, FAVORITES_CATEGORY];
 
 export function Learn() {
   const [activeCategory, setActiveCategory] = useState<LearnCategory>(LEARN_CATEGORIES[0]);
@@ -48,8 +52,12 @@ export function Learn() {
 
   const filteredAlgos = React.useMemo<LearnCase[]>(() => {
     if (activeCategory === CORE_CATEGORY) return coreCases;
+    if (activeCategory === FAVORITES_CATEGORY) {
+      const allLearnCases: LearnCase[] = [...ALGORITHMS, ...coreCases];
+      return allLearnCases.filter((algorithm) => favorites.includes(algorithm.id));
+    }
     return ALGORITHMS.filter((algorithm) => algorithm.category === activeCategory);
-  }, [activeCategory, coreCases]);
+  }, [activeCategory, coreCases, favorites]);
 
   const isCoreSelectedCase = selectedCase?.category === CORE_CATEGORY;
   const selectedCaseSteps = React.useMemo(

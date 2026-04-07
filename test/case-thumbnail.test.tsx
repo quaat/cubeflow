@@ -36,7 +36,7 @@ test('CaseThumbnail renders a 3x3 u-face when size is omitted', () => {
 test('CaseThumbnail renders a 4x4 u-face and 4-sticker side ring', () => {
   const algo = createAlgorithm({
     cubeSize: 4,
-    category: '4x4 Beginner',
+    category: '4x4',
     thumbnail: {
       size: 4,
       uFace: [
@@ -62,7 +62,7 @@ test('CaseThumbnail renders a 4x4 u-face and 4-sticker side ring', () => {
 test('CaseThumbnail arrows render on 4x4 thumbnails', () => {
   const algo = createAlgorithm({
     cubeSize: 4,
-    category: '4x4 Beginner',
+    category: '4x4',
     thumbnail: {
       size: 4,
       uFace: [
