@@ -107,9 +107,24 @@ export function Arcade() {
   const baseDuration = 800 / arcadeSpeed;
   const animDurationMs = 600 / cubeRotationSpeed;
   const minDuration = animDurationMs / (FADE_FRACTION - MOVE_FRACTION);
-  
-  const durationPerMove = Math.max(baseDuration, minDuration); // ms per move
-  const totalDuration = steps.length * durationPerMove;
+  const cardTransitionDuration = Math.max(baseDuration, minDuration);
+  const movePhaseDurationMs = cardTransitionDuration * MOVE_FRACTION;
+  const fadePhaseDurationMs = cardTransitionDuration * (1 - FADE_FRACTION);
+  const stepDurations = React.useMemo(
+    () => steps.map((step) => {
+      const moveCount = Math.max(1, step.moves.length);
+      const animationDurationMs = animDurationMs * moveCount;
+      return Math.max(
+        baseDuration,
+        movePhaseDurationMs + animationDurationMs + fadePhaseDurationMs
+      );
+    }),
+    [steps, animDurationMs, baseDuration, movePhaseDurationMs, fadePhaseDurationMs]
+  );
+  const totalDuration = React.useMemo(
+    () => stepDurations.reduce((sum, duration) => sum + duration, 0),
+    [stepDurations]
+  );
   
   const startTimeRef = useRef<number | null>(null);
   const pauseTimeRef = useRef<number | null>(null);
@@ -214,17 +229,44 @@ export function Arcade() {
   if (!algo) return <div className="flex-1 flex items-center justify-center">Loading...</div>;
 
   const stepCount = steps.length;
-  const currentMoveIndex = stepCount > 0
-    ? Math.min(Math.floor(progress * stepCount), stepCount - 1)
-    : -1;
-  
-  const rawBeatFloat = progress * stepCount;
-  const p = currentMoveIndex >= 0 ? rawBeatFloat - currentMoveIndex : 0;
+  const elapsedMs = progress * totalDuration;
+
+  let currentMoveIndex = -1;
+  let currentStepStartMs = 0;
+  let currentStepDurationMs = 1;
+  if (stepCount > 0) {
+    let accumulated = 0;
+    for (let index = 0; index < stepCount; index++) {
+      const duration = stepDurations[index];
+      if (elapsedMs < accumulated + duration || index === stepCount - 1) {
+        currentMoveIndex = index;
+        currentStepStartMs = accumulated;
+        currentStepDurationMs = duration;
+        break;
+      }
+      accumulated += duration;
+    }
+  }
+
+  const elapsedInCurrentStepMs = currentMoveIndex >= 0
+    ? Math.max(0, elapsedMs - currentStepStartMs)
+    : 0;
+  const movePhaseProgress = Math.max(
+    0,
+    Math.min(1, elapsedInCurrentStepMs / Math.max(movePhaseDurationMs, 1))
+  );
+  const fadeStartMs = Math.max(0, currentStepDurationMs - fadePhaseDurationMs);
+  const fadeProgress = elapsedInCurrentStepMs <= fadeStartMs
+    ? 0
+    : Math.max(
+      0,
+      Math.min(1, (elapsedInCurrentStepMs - fadeStartMs) / Math.max(fadePhaseDurationMs, 1))
+    );
   
   let currentBeatFloat = 0;
-  if (p < MOVE_FRACTION) {
+  if (movePhaseProgress < 1) {
     // Moving phase
-    currentBeatFloat = currentMoveIndex - 1 + (p / MOVE_FRACTION);
+    currentBeatFloat = currentMoveIndex - 1 + movePhaseProgress;
   } else {
     // Stopped phase
     currentBeatFloat = currentMoveIndex;
@@ -237,7 +279,7 @@ export function Arcade() {
         <div 
           className="w-[200%] h-[200%] rotate-x-60 translate-y-1/4 bg-[linear-gradient(to_right,#4f46e5_1px,transparent_1px),linear-gradient(to_bottom,#4f46e5_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" 
           style={{
-            backgroundPositionY: `${(progress * stepCount * 4) % 4}rem`
+            backgroundPositionY: `${(Math.max(currentBeatFloat, 0) * 4) % 4}rem`
           }}
         />
       </div>
@@ -265,15 +307,15 @@ export function Arcade() {
             
             // Fade out the active card after it animates
             let cardOpacity = layout.opacity;
-            if (isActive && p > FADE_FRACTION) {
-              cardOpacity = layout.opacity * (1 - (p - FADE_FRACTION) / (1 - FADE_FRACTION));
+            if (isActive && fadeProgress > 0) {
+              cardOpacity = layout.opacity * (1 - fadeProgress);
             } else if (isPast) {
               cardOpacity = 0; // Keep past cards hidden
             }
 
             if (cardOpacity <= 0) return null;
 
-            const playAnimation = isActive && p >= MOVE_FRACTION;
+            const playAnimation = isActive && movePhaseProgress >= 1;
 
             return (
               <div
