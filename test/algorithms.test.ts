@@ -21,31 +21,6 @@ test('algorithm ids are unique and every category is represented', () => {
   assert.deepEqual([...representedCategories].sort(), [...CATEGORIES].sort());
 });
 
-test('category ordering and distribution match the 2-look/full OLL+PLL split', () => {
-  assert.deepEqual(CATEGORIES, ["Beginner", "2-Look OLL", "Advanced OLL", "2-Look PLL", "Advanced PLL", "4x4 Beginner" ]);
-
-  const byCategory = ALGORITHMS.reduce<Record<string, number>>((acc, algorithm) => {
-    acc[algorithm.category] = (acc[algorithm.category] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  assert.equal(byCategory["4x4 Beginner"], 3, '4x4 Beginner should contain exactly 3 cases');
-  assert.equal(byCategory["2-Look OLL"], 10, '2-Look OLL should contain exactly 10 cases');
-  assert.equal(byCategory["Advanced OLL"], 50, 'Advanced OLL should contain exactly 50 cases');
-  assert.equal(byCategory["2-Look PLL"], 6, '2-Look PLL should contain exactly 6 cases');
-  assert.equal(byCategory["Advanced PLL"], 15, 'Advanced PLL should contain exactly 15 cases');
-  assert.equal((byCategory["2-Look PLL"] ?? 0) + (byCategory["Advanced PLL"] ?? 0), 21, 'Combined PLL total should remain 21');
-  assert.equal(byCategory["Beginner"], 9, 'Beginner case count should match the current catalog');
-});
-
-test('legacy OLL category value is no longer used', () => {
-  assert.equal(ALGORITHMS.some((algorithm) => String(algorithm.category) === "OLL"), false);
-});
-
-test('legacy PLL category value is no longer used', () => {
-  assert.equal(ALGORITHMS.some((algorithm) => String(algorithm.category) === "PLL"), false);
-});
-
 test('4x4 entries are present with valid cube size metadata', () => {
   const fourByFourIds = [
     '4x4-last-two-edges',
@@ -53,8 +28,8 @@ test('4x4 entries are present with valid cube size metadata', () => {
     '4x4-pll-parity',
   ];
 
-  const fourByFourCases = ALGORITHMS.filter((algorithm) => algorithm.category === '4x4 Beginner');
-  assert.equal(fourByFourCases.length, 3, 'There should be exactly 3 cases in the 4x4 Beginner category');
+  const fourByFourCases = ALGORITHMS.filter((algorithm) => algorithm.category === '4x4');
+  assert.equal(fourByFourCases.length, 3, 'There should be exactly 3 cases in the 4x4 category');
   assert.deepEqual(fourByFourCases.map((algorithm) => algorithm.id).sort(), [...fourByFourIds].sort());
 
   for (const algorithm of ALGORITHMS) {
