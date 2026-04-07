@@ -4,8 +4,8 @@ export type AlgorithmCategory =
   | "Beginner"
   | "4x4 Beginner"
   | "2-Look OLL"
-  | "Advanced OLL"
   | "2-Look PLL"
+  | "Advanced OLL"
   | "Advanced PLL";
 
 export type AlgorithmCase = {
@@ -25,8 +25,8 @@ export type AlgorithmCase = {
 export const CATEGORIES: readonly AlgorithmCategory[] = [
   "Beginner",
   "2-Look OLL",
-  "Advanced OLL",
   "2-Look PLL",
+  "Advanced OLL",
   "Advanced PLL",
   "4x4 Beginner",
 ] as const;
